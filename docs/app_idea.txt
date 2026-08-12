@@ -1,0 +1,472 @@
+## **JobTrack — Full-Stack Job Application Tracker**
+
+Build a web app that helps users manage their job search.
+
+Think of it as a personal dashboard where someone can track:
+
+* Companies they're applying to
+* Job positions
+* Application status
+* Interviews
+* Deadlines
+* Notes
+* Contacts/recruiters
+* Follow-up dates
+
+Make it feel like a **real SaaS product**, not a school CRUD project.
+
+### Example user flow
+
+A visitor lands on:
+
+> **JobTrack**
+> "Take control of your job search."
+
+They can sign up, then see:
+
+```text
+┌──────────────────────────────────────────────┐
+│ JobTrack                             Jest ▼  │
+├────────────┬─────────────────────────────────┤
+│ Dashboard  │ Applications                    │
+│ Jobs       │                                 │
+│ Interviews │  Applications       24          │
+│ Contacts   │  Interviews          5          │
+│ Settings   │  Offers              2          │
+│            │                                 │
+│            │  Applied   ████████████  12     │
+│            │  Interview █████             5  │
+│            │  Offer     ██                2  │
+│            │  Rejected  █████             5  │
+│            │                                 │
+│            │  Recent Applications            │
+│            │  Google       Software Engineer │
+│            │  Microsoft    Backend Developer │
+│            │  Accenture    Java Developer    │
+└────────────┴─────────────────────────────────┘
+```
+
+A user can click **"Add Application"**:
+
+```text
+Company:       Google
+Position:      Software Engineer
+Location:      Remote
+Salary:        $90,000 - $120,000
+Status:        Applied
+Date Applied:  August 12, 2026
+Job URL:       ...
+Notes:         Java/Spring position
+```
+
+Then the backend persists everything in Supabase.
+
+---
+
+# Tech Stack
+
+* **HTML + CSS + JavaScript**: Frontend
+* **Firebase**: Hosting frontend (Static)
+* **Visual Studio Code**: Frontend IDE
+* **Java + SpringBoot**: Backend
+* **Supabase**: Database (PostgreSQL) + Authentication
+* **Render**: Hosting backend (SpringBoot API)
+* **IntelliJ**: Backend IDE
+* **GitHub**: Version control
+
+# How this stack fits together
+
+### Frontend
+
+**HTML + CSS + JavaScript**:
+
+```text
+HTML
+CSS
+JavaScript
+    ↓
+Fetch API
+    ↓
+Java REST API
+```
+
+Don't use a frontend framework.
+
+For example:
+
+```javascript
+async function loadApplications() {
+    const response = await fetch(
+        `${API_URL}/api/applications`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const applications = await response.json();
+
+    renderApplications(applications);
+}
+```
+
+The frontend communicates with Java REST API using HTTP requests and JSON.
+
+---
+
+# Backend
+
+**Java + Spring Boot**:
+
+```text
+jobtrack-backend/
+│
+├── controller/
+│   ├── ApplicationController.java
+│   ├── InterviewController.java
+│   └── ContactController.java
+│
+├── service/
+│   ├── ApplicationService.java
+│   ├── InterviewService.java
+│   └── ContactService.java
+│
+├── repository/
+│   ├── ApplicationRepository.java
+│   ├── InterviewRepository.java
+│   └── ContactRepository.java
+│
+├── model/
+│   ├── Application.java
+│   ├── Interview.java
+│   └── Contact.java
+│
+└── config/
+```
+
+Use Spring Boot to expose REST endpoints such as:
+
+```text
+GET    /api/applications
+GET    /api/applications/{id}
+POST   /api/applications
+PUT    /api/applications/{id}
+DELETE /api/applications/{id}
+
+GET    /api/interviews
+POST   /api/interviews
+PUT    /api/interviews/{id}
+
+GET    /api/contacts
+POST   /api/contacts
+```
+
+A very recognizable Java backend architecture.
+
+---
+
+# Database
+
+**Supabase/PostgreSQL**:
+
+```text
+users
+applications
+interviews
+contacts
+notes
+```
+
+For example:
+
+### applications
+
+```text
+id
+user_id
+company
+position
+location
+salary_min
+salary_max
+status
+date_applied
+job_url
+created_at
+updated_at
+```
+
+### interviews
+
+```text
+id
+application_id
+interview_date
+interview_type
+interviewer
+notes
+result
+```
+
+### contacts
+
+```text
+id
+user_id
+name
+company
+role
+email
+linkedin_url
+notes
+```
+
+Demonstrate **relational database design**, not just storing JSON blobs.
+
+---
+
+# Authentication
+
+Use Supabase Auth so users can:
+
+```text
+Sign Up
+   ↓
+Log In
+   ↓
+Dashboard
+   ↓
+Only see their own applications
+```
+
+Database records can be associated with the authenticated user's ID.
+
+Demonstrate concepts like:
+
+* Authentication
+* Authorization
+* User-specific data
+* REST APIs
+* Database relationships
+* CRUD
+* Error handling
+* Input validation
+
+---
+
+# Deployment architecture
+
+```text
+                  ┌──────────────────┐
+                  │     User         │
+                  └────────┬─────────┘
+                           │
+                           ▼
+                ┌────────────────────┐
+                │ Firebase Hosting   │
+                │                    │
+                │ HTML               │
+                │ CSS                │
+                │ JavaScript         │
+                └─────────┬──────────┘
+                          │
+                     HTTPS / REST
+                          │
+                          ▼
+                ┌────────────────────┐
+                │      Render        │
+                │                    │
+                │   Spring Boot      │
+                │   Java Backend     │
+                └─────────┬──────────┘
+                          │
+                     PostgreSQL
+                          │
+                          ▼
+                ┌────────────────────┐
+                │     Supabase       │
+                │                    │
+                │   Database         │
+                │   Authentication   │
+                └────────────────────┘
+```
+
+---
+
+# Dashboard
+
+Add a dashboard showing things like:
+
+### Application statistics
+
+```text
+Applications        32
+Interviews           8
+Offers               2
+Rejections          12
+```
+
+### Application pipeline
+
+```text
+Wishlist → Applied → Interview → Offer
+                    ↓
+                  Rejected
+```
+
+### Upcoming interviews
+
+```text
+TODAY
+
+10:00 AM
+Google
+Technical Interview
+
+2:00 PM
+Amazon
+Behavioral Interview
+```
+
+### Application activity
+
+```text
+Aug 12   Applied to Google
+Aug 10   Interview with Amazon
+Aug 08   Added Microsoft
+Aug 05   Received rejection from Meta
+```
+
+---
+
+# Kanban board
+
+```text
+WISHLIST       APPLIED        INTERVIEW       OFFER
+──────────     ─────────      ──────────      ───────
+
+Netflix        Google         Amazon          Acme
+Spotify        Microsoft      Meta
+Adobe          IBM
+```
+
+Allow users to drag an application between columns.
+
+For example:
+
+```text
+Applied
+   ↓
+Interview
+   ↓
+Offer
+```
+
+JavaScript handles the UI interaction, while the Java backend updates the status in Supabase.
+
+That creates a very nice demonstration of **frontend ↔ backend ↔ database communication**.
+
+---
+
+# Portfolio Preview
+
+### JobTrack
+
+**Full-stack job application management platform**
+
+**Tech:**
+
+`Java` `Spring Boot` `HTML` `CSS` `JavaScript` `PostgreSQL` `Supabase` `Firebase` `Render`
+
+**[Live Demo] [GitHub]**
+
+> JobTrack allows users to manage job applications, interviews, contacts, and application progress through a personalized dashboard.
+
+```text
+Frontend
+HTML / CSS / JavaScript
+        │
+        │ REST API
+        ▼
+Backend
+Java / Spring Boot
+        │
+        ▼
+Database
+PostgreSQL / Supabase
+```
+
+Screenshots/GIFs of:
+
+1. Login
+2. Dashboard
+3. Application board
+4. Add application
+5. Application details
+6. Interview calendar
+
+---
+
+# Live Demo
+
+**Try Demo Account**
+
+```text
+Email:
+demo@jobtrack.com
+
+Password:
+jobtrackdemoaccount
+```
+
+> **Explore Demo**
+
+Populate the account with realistic fake data:
+
+```text
+Google
+Software Engineer
+Interview
+
+Microsoft
+Backend Developer
+Applied
+
+Amazon
+Java Developer
+Offer
+
+Netflix
+Software Engineer
+Rejected
+```
+
+That way a guest can immediately click around.
+
+---
+
+# What this project demonstrates?
+
+| Skill              | Where it appears        |
+| ------------------ | ----------------------- |
+| Java               | Backend                 |
+| Spring Boot        | REST API                |
+| OOP                | Models/services         |
+| HTML               | UI                      |
+| CSS                | Responsive interface    |
+| JavaScript         | Frontend logic          |
+| REST               | Frontend ↔ backend      |
+| JSON               | API communication       |
+| PostgreSQL         | Database                |
+| SQL                | Queries/relationships   |
+| Supabase           | DB + authentication     |
+| Firebase           | Frontend hosting        |
+| Render             | Backend hosting         |
+| Git/GitHub         | Version control         |
+| Authentication     | User accounts           |
+| Authorization      | User-specific records   |
+| CRUD               | Applications/interviews |
+| API error handling | Backend                 |
+| Responsive design  | Frontend                |
+| Deployment         | Production application  |
