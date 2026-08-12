@@ -287,7 +287,7 @@ lives, repro steps if known, suspected cause if known.)*
 
 ### Phase 1 — Database
 - [x] Write SQL migrations for `applications`, `interviews`, `contacts`, `notes`
-- [ ] Apply migrations to Supabase, verify tables + foreign keys
+- [x] Apply migrations to Supabase, verify tables + foreign keys
 
 ### Phase 2 — Auth
 - [ ] Wire up Supabase Auth sign up / log in on frontend
