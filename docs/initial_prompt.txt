@@ -1,0 +1,15 @@
+i want you to create a single file like this, but for the cursor agent ai. im using cursor as different tabs, meaning i dont use a single conversation to do all of it; so create a file that will instruct the ai agents to start the next single task, fix whatever bugs, implement whatever new features i recently thought, or continue whatever task interrupted, using prompt commands like "start ...", "fix ...", "implement ...", "continue ...". write this in a single md file which i can let them read it. i want the rules to direct the ai to read this file so they can understand whatever missed information they may need. for example:
+
+To start the project or to start the next task:
+read AI_AGENT_RULES.MD first.
+
+start the next task
+
+To fix something:
+read AI_AGENT_RULES.MD first.
+
+fix:
+
+A
+B
+C

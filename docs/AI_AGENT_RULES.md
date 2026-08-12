@@ -192,18 +192,28 @@ Never commit real values — use `.env.example` with placeholder keys.
 *(Append here whenever an agent makes a non-trivial architectural choice not
 already specified above. Newest at the bottom.)*
 
-- *(none yet)*
+- **2026-08-12:** Spring Boot skeleton generated via Spring Initializr — Maven
+  (not Gradle), Java 21, Spring Boot 4.1.0. Package root: `com.jobtrack`.
+  Layer packages (`controller`, `service`, `repository`, `model`, `config`)
+  scaffolded under `src/main/java/com/jobtrack/`.
+- **2026-08-12:** Supabase credentials use per-env `.env` files (gitignored);
+  `.env.example` templates in `jobtrack-backend/` and `frontend/`. Setup guide
+  at `docs/SUPABASE_SETUP.md`. JDBC URL must use `jdbc:postgresql://...` with
+  `?sslmode=require`.
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 0 — Project Setup (in progress)
-**Last updated by:** Agent session 2026-08-12
-**Summary:** Local git repo initialized with `frontend/`, `jobtrack-backend/`,
-and `docs/` layout. Root `.gitignore` added. Minimal frontend placeholder
-(`index.html`, `css/styles.css`). GitHub remote not yet created — `gh` CLI
-is not authenticated on this machine. Next task: Spring Boot skeleton.
+**Last updated by:** Agent session 2026-08-12 (task 3)
+**Summary:** Supabase agent prep complete — `docs/SUPABASE_SETUP.md` (dashboard
+steps, JDBC URL format, JWT secret, verification checklist), plus
+`jobtrack-backend/.env.example` and `frontend/.env.example`. **User must**
+create the Supabase project and copy credentials into local `.env` files before
+Phase 1 migrations can run. Next agent task: **Create Firebase project for
+hosting, `firebase init`** (can proceed in parallel with user Supabase setup).
+JDK 21 still not verified locally.
 
 ---
 
@@ -233,12 +243,15 @@ lives, repro steps if known, suspected cause if known.)*
 ### Phase 0 — Project Setup
 - [x] Initialize GitHub repo with `frontend/`, `jobtrack-backend/`, `docs/`
       (local git init + folder layout done; GitHub remote pending — see Known Issues)
-- [ ] Create Spring Boot project skeleton (Spring Web, Spring Data JPA,
+- [x] Create Spring Boot project skeleton (Spring Web, Spring Data JPA,
       Validation, PostgreSQL driver)
-- [ ] Create Supabase project, get connection string + JWT secret
+- [x] Prepare Supabase setup (`docs/SUPABASE_SETUP.md`, `.env.example` templates)
+- [ ] **User:** Create Supabase project + fill `jobtrack-backend/.env` and
+      `frontend/.env` (see `docs/SUPABASE_SETUP.md`) — blocks Phase 1
 - [ ] Create Firebase project for hosting, `firebase init`
 - [ ] Create Render service pointing at `jobtrack-backend/`
 - [ ] Add `.env.example` and `.gitignore` for both frontend and backend
+      (`.env.example` done; confirm `.gitignore` coverage)
 
 ### Phase 1 — Database
 - [ ] Write SQL migrations for `applications`, `interviews`, `contacts`, `notes`
@@ -304,3 +317,13 @@ short — this is a log, not a diary.)*
   layout (`frontend/`, `jobtrack-backend/`, `docs/`). Added root `.gitignore`,
   minimal `frontend/index.html` + `css/styles.css`, copied spec to
   `docs/app_idea.txt`. Could not create GitHub remote (`gh` not authenticated).
+- **2026-08-12 — Phase 0, task 2:** Spring Boot skeleton via Initializr (Maven,
+  Java 21, Boot 4.1.0). Dependencies: webmvc, data-jpa, validation, postgresql.
+  Added `controller/HealthController` (`GET /api/health`), package scaffolding
+  for config/model/repository/service, `application.properties` with Supabase
+  placeholders. Build not run — `JAVA_HOME` unset / JDK not on PATH.
+- **2026-08-12 — Phase 0, task 3:** Supabase agent prep — `docs/SUPABASE_SETUP.md`
+  (project creation, JDBC/JWT/frontend keys, verification steps),
+  `jobtrack-backend/.env.example`, `frontend/.env.example`. Actual Supabase
+  project creation requires user dashboard access; split into separate user
+  backlog item.
