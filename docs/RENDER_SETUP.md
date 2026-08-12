@@ -2,12 +2,10 @@
 
 JobTrack deploys the Spring Boot backend from `jobtrack-backend/` to Render.
 
-This repo now includes a Render Blueprint file at the repo root:
+Render no longer offers a native Java runtime, so this project uses **Docker**:
 
-- `render.yaml`
-
-That file defines the backend web service, its monorepo `rootDir`, build/start
-commands, health check, Java version, and required environment variable names.
+- `render.yaml` — Render Blueprint (repo root)
+- `jobtrack-backend/Dockerfile` — multi-stage build (JDK 21 → JRE 21)
 
 ---
 
@@ -30,7 +28,7 @@ git push -u origin main
 2. Click **New** → **Blueprint**.
 3. Connect the GitHub repo for this project.
 4. Render should detect the repo-root `render.yaml`.
-5. Review the generated service named `jobtrack-backend`.
+5. Review the generated service named `jobtrack-backend` (runtime: **Docker**).
 6. Continue to the environment variable prompt.
 
 ---
@@ -44,10 +42,6 @@ Render should prompt for the `sync: false` values from `render.yaml`:
 - `SUPABASE_DB_PASSWORD`
 - `SUPABASE_JWT_SECRET`
 
-It also sets:
-
-- `JAVA_VERSION=21`
-
 Notes:
 
 - `SUPABASE_DB_URL` should be the JDBC form used by Spring Boot, for example:
@@ -58,6 +52,8 @@ jdbc:postgresql://db.YOUR_PROJECT_REF.supabase.co:5432/postgres?sslmode=require
 
 - Render automatically provides `PORT`, which already matches
   `server.port=${PORT:8080}` in `application.properties`.
+- Java version is pinned in the Dockerfile (`eclipse-temurin:21`), not via a
+  Render env var.
 
 ---
 
@@ -65,12 +61,15 @@ jdbc:postgresql://db.YOUR_PROJECT_REF.supabase.co:5432/postgres?sslmode=require
 
 The Blueprint uses:
 
+- `runtime: docker`
 - `rootDir: jobtrack-backend`
-- `buildCommand: ./mvnw clean package -DskipTests`
-- `startCommand: java -jar target/jobtrack-backend-*.jar`
+- `dockerfilePath: ./Dockerfile`
 - `healthCheckPath: /api/health`
 
-This assumes the backend builds a runnable Spring Boot jar in `target/`.
+The Dockerfile:
+
+1. Builds the jar with `./mvnw clean package -DskipTests`
+2. Runs `java -jar app.jar` on Eclipse Temurin 21 JRE
 
 ---
 

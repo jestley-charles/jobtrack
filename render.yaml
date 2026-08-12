@@ -1,14 +1,11 @@
 services:
   - type: web
     name: jobtrack-backend
-    runtime: java
+    runtime: docker
     rootDir: jobtrack-backend
-    buildCommand: ./mvnw clean package -DskipTests
-    startCommand: java -jar target/jobtrack-backend-*.jar
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     envVars:
-      - key: JAVA_VERSION
-        value: "21"
       - key: SUPABASE_DB_URL
         sync: false
       - key: SUPABASE_DB_USER

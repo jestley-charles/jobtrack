@@ -206,19 +206,20 @@ already specified above. Newest at the bottom.)*
 - **2026-08-12:** Render deployment is managed from a repo-root `render.yaml`
   Blueprint, with `jobtrack-backend/` as the service `rootDir` and secrets
   provided in the Render dashboard via `sync: false` env vars.
+- **2026-08-12:** Render has no native Java runtime — backend deploys via Docker
+  (`jobtrack-backend/Dockerfile`, Eclipse Temurin 21 multi-stage build).
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 0 — Project Setup (in progress)
-**Last updated by:** Agent session 2026-08-12 (task 5)
-**Summary:** Render backend deployment prep complete — repo-root `render.yaml`
-and `docs/RENDER_SETUP.md` added. Actual Render service creation requires a
-GitHub remote plus Render dashboard access. Local `jobtrack-backend/.env`,
-`frontend/.env`, and `frontend/.firebaserc` files now exist, but their contents
-were not re-verified by the agent. Next actionable local task: **confirm
-`.gitignore` coverage for frontend/backend env files and generated artifacts**.
+**Last updated by:** Agent session 2026-08-12 (Render Docker fix)
+**Summary:** Render backend deploy switched from nonexistent `runtime: java` to
+Docker (`jobtrack-backend/Dockerfile` + updated `render.yaml`). Actual Render
+service creation still requires GitHub remote plus Render dashboard access.
+Next actionable local task: **confirm `.gitignore` coverage for frontend/backend
+env files and generated artifacts**.
 
 ---
 
@@ -347,3 +348,6 @@ short — this is a log, not a diary.)*
   `jobtrack-backend/` with Java 21, `/api/health`, and Supabase env var names.
   Actual Render service creation depends on GitHub remote setup plus Render
   dashboard access, so split into a separate user backlog item.
+- **2026-08-12 — Render fix:** Replaced invalid `runtime: java` with Docker
+  deployment — added `jobtrack-backend/Dockerfile` (Temurin 21 multi-stage)
+  and updated `render.yaml` / `docs/RENDER_SETUP.md`.
