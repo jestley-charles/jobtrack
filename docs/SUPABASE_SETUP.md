@@ -103,8 +103,12 @@ cd jobtrack-backend
 $env:SUPABASE_DB_URL = "jdbc:postgresql://db.[REF].supabase.co:5432/postgres?sslmode=require"
 $env:SUPABASE_DB_USER = "postgres"
 $env:SUPABASE_DB_PASSWORD = "your-password"
-.\mvnw.cmd spring-boot:run
+mvn spring-boot:run
 ```
+
+When the backend starts, Flyway will automatically apply the SQL migration
+from `jobtrack-backend/src/main/resources/db/migration/` (if not already
+applied).
 
 Hit `http://localhost:8080/api/health` — should return OK. A failed DB connection usually means wrong URL, password, or SSL settings.
 
@@ -118,6 +122,8 @@ You can also test the raw connection in the Supabase dashboard under **SQL Edito
 - [ ] Database password saved
 - [ ] `jobtrack-backend/.env` filled in (`SUPABASE_DB_URL`, `SUPABASE_DB_USER`, `SUPABASE_DB_PASSWORD`, `SUPABASE_JWT_SECRET`)
 - [ ] `frontend/.env` filled in (`SUPABASE_URL`, `SUPABASE_ANON_KEY`)
-- [ ] Health endpoint runs without datasource errors (after JDK 21 is available locally)
+- [ ] Health endpoint runs without datasource errors (after JDK 21 + Maven are available locally)
+- [ ] Supabase tables exist after startup: `applications`, `interviews`,
+      `contacts`, `notes`
 
 When all boxes are checked, Phase 0 task **Create Supabase project** is complete. The next agent can proceed to **Phase 1 — SQL migrations**.

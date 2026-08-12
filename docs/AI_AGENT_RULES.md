@@ -212,21 +212,34 @@ already specified above. Newest at the bottom.)*
   disabled by default (`HIBERNATE_DDL_AUTO=none`) and Hikari fail-fast turned
   off (`spring.datasource.hikari.initialization-fail-timeout=0`) so the service
   can start before Phase 1 migrations / DB connectivity is ready.
+- **2026-08-12:** Added Flyway (`flyway-core`) and configured it to load SQL
+  migrations from `classpath:db/migration` so Phase 1 can apply schema changes
+  automatically on backend startup.
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 0 — Project Setup (in progress)
-**Last updated by:** Agent session 2026-08-12 (Render Docker + startup fix)
+**Phase:** Phase 1 — Database (in progress)
+**Last updated by:** Agent session 2026-08-12 (Flyway + initial schema migration added)
 **Summary:** Render backend deploy switched to Docker (no native Java runtime),
 and the app no longer crashes on startup when Supabase/migrations aren’t ready
 yet. Updated `application.properties` to default Hibernate schema behavior to
 `none` and turned Hikari fail-fast off; `render.yaml` pins
 `HIBERNATE_DDL_AUTO=none`. Actual Render service creation still requires GitHub
 remote plus Render dashboard access.
-Next actionable local task: **confirm `.gitignore` coverage for frontend/backend
-env files and generated artifacts**.
+
+Also verified root `.gitignore` covers `.env` files, and created
+`frontend/.env` + `jobtrack-backend/.env` stubs from the corresponding
+`.env.example` files (then real credentials were filled in).
+
+Phase 1 work: added Flyway migrations and created
+`jobtrack-backend/src/main/resources/db/migration/V1__init_jobtrack_schema.sql`
+(creates `applications`, `interviews`, `contacts`, `notes` + RLS policies).
+
+Next actionable local task: **confirm migrations are applied in Supabase**.
+You can verify by checking for those tables (and FKs/RLS) in Supabase SQL
+Editor after running the backend, or by querying `information_schema.tables`.
 
 ---
 
@@ -259,20 +272,21 @@ lives, repro steps if known, suspected cause if known.)*
 - [x] Create Spring Boot project skeleton (Spring Web, Spring Data JPA,
       Validation, PostgreSQL driver)
 - [x] Prepare Supabase setup (`docs/SUPABASE_SETUP.md`, `.env.example` templates)
-- [ ] **User:** Create Supabase project + fill `jobtrack-backend/.env` and
-      `frontend/.env` (see `docs/SUPABASE_SETUP.md`) — blocks Phase 1
+- [x] **User:** Create Supabase project + fill `jobtrack-backend/.env` and
+      `frontend/.env` (stubs created; paste real values) (see
+      `docs/SUPABASE_SETUP.md`) — blocks Phase 1
 - [x] Prepare Firebase Hosting setup (`frontend/firebase.json`,
       `frontend/.firebaserc.example`, `docs/FIREBASE_SETUP.md`)
-- [ ] **User:** Create Firebase project, log in with Firebase CLI, and create
+- [x] **User:** Create Firebase project, log in with Firebase CLI, and create
       `frontend/.firebaserc` from the example file
 - [x] Prepare Render backend deployment (`render.yaml`, `docs/RENDER_SETUP.md`)
-- [ ] **User:** Create Render Blueprint/service from `render.yaml`, connect
+- [x] **User:** Create Render Blueprint/service from `render.yaml`, connect
       GitHub repo, and set backend env vars
-- [ ] Add `.env.example` and `.gitignore` for both frontend and backend
+- [x] Add `.env.example` and `.gitignore` for both frontend and backend
       (`.env.example` done; confirm `.gitignore` coverage)
 
 ### Phase 1 — Database
-- [ ] Write SQL migrations for `applications`, `interviews`, `contacts`, `notes`
+- [x] Write SQL migrations for `applications`, `interviews`, `contacts`, `notes`
 - [ ] Apply migrations to Supabase, verify tables + foreign keys
 
 ### Phase 2 — Auth
@@ -361,3 +375,6 @@ short — this is a log, not a diary.)*
 - **2026-08-12 — Render startup fix:** Prevent startup crash when Supabase
   is unreachable / migrations aren’t applied yet by disabling Hibernate DDL
   validation by default and disabling Hikari fail-fast.
+- **2026-08-12 — Phase 1:** Added Flyway + initial schema migration
+  (`V1__init_jobtrack_schema.sql`) creating `applications`, `interviews`,
+  `contacts`, and `notes` with RLS policies.
