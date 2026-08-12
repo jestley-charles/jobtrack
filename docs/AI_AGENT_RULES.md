@@ -215,31 +215,27 @@ already specified above. Newest at the bottom.)*
 - **2026-08-12:** Added Flyway (`flyway-core`) and configured it to load SQL
   migrations from `classpath:db/migration` so Phase 1 can apply schema changes
   automatically on backend startup.
+- **2026-08-12:** Frontend Supabase credentials use `frontend/.env` (gitignored)
+  plus a generated `frontend/js/config.js` (also gitignored). Run
+  `npm run config` from `frontend/` after editing `.env`. Committed templates:
+  `frontend/.env.example` and `frontend/js/config.example.js`. Auth uses
+  `@supabase/supabase-js` via CDN (no bundler).
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 1 — Database (in progress)
-**Last updated by:** Agent session 2026-08-12 (Flyway + initial schema migration added)
-**Summary:** Render backend deploy switched to Docker (no native Java runtime),
-and the app no longer crashes on startup when Supabase/migrations aren’t ready
-yet. Updated `application.properties` to default Hibernate schema behavior to
-`none` and turned Hikari fail-fast off; `render.yaml` pins
-`HIBERNATE_DDL_AUTO=none`. Actual Render service creation still requires GitHub
-remote plus Render dashboard access.
+**Phase:** Phase 2 — Auth (in progress)
+**Last updated by:** Agent session 2026-08-12 (frontend Supabase Auth wired)
+**Summary:** Phase 1 complete (Flyway migrations applied). Phase 2 started:
+frontend sign up / log in via Supabase Auth is implemented with
+`login.html`, `signup.html`, a protected `dashboard.html` placeholder,
+`js/auth.js`, `js/supabase-client.js`, and `js/api.js` (Bearer token helper
+for upcoming backend calls). Config is generated from `frontend/.env` via
+`npm run config` → `js/config.js`.
 
-Also verified root `.gitignore` covers `.env` files, and created
-`frontend/.env` + `jobtrack-backend/.env` stubs from the corresponding
-`.env.example` files (then real credentials were filled in).
-
-Phase 1 work: added Flyway migrations and created
-`jobtrack-backend/src/main/resources/db/migration/V1__init_jobtrack_schema.sql`
-(creates `applications`, `interviews`, `contacts`, `notes` + RLS policies).
-
-Next actionable local task: **confirm migrations are applied in Supabase**.
-You can verify by checking for those tables (and FKs/RLS) in Supabase SQL
-Editor after running the backend, or by querying `information_schema.tables`.
+Next actionable task: **Backend JWT validation filter** (verify
+Supabase-issued tokens on API requests).
 
 ---
 
@@ -290,7 +286,7 @@ lives, repro steps if known, suspected cause if known.)*
 - [x] Apply migrations to Supabase, verify tables + foreign keys
 
 ### Phase 2 — Auth
-- [ ] Wire up Supabase Auth sign up / log in on frontend
+- [x] Wire up Supabase Auth sign up / log in on frontend
 - [ ] Backend JWT validation filter (verify Supabase-issued tokens)
 - [ ] Backend: derive `user_id` from validated token, never trust client input
 
@@ -378,3 +374,9 @@ short — this is a log, not a diary.)*
 - **2026-08-12 — Phase 1:** Added Flyway + initial schema migration
   (`V1__init_jobtrack_schema.sql`) creating `applications`, `interviews`,
   `contacts`, and `notes` with RLS policies.
+- **2026-08-12 — Phase 2, task 1:** Wired frontend Supabase Auth — login/signup
+  pages, auth module (`js/auth.js`), Supabase client init, session guards,
+  protected dashboard placeholder, `js/api.js` Bearer helper. Added
+  `frontend/.env.example`, `js/config.example.js`, `npm run config` script.
+  Fixed `.gitignore` to allow `.env.example` files; added
+  `jobtrack-backend/.env.example`.

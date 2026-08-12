@@ -1,0 +1,7 @@
+{
+  "name": "jobtrack-frontend",
+  "private": true,
+  "scripts": {
+    "config": "powershell -ExecutionPolicy Bypass -File scripts/generate-config.ps1"
+  }
+}
