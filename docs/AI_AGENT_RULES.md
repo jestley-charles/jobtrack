@@ -223,21 +223,25 @@ already specified above. Newest at the bottom.)*
 - **2026-08-12:** Backend JWT validation uses `jjwt` (HS256) with
   `SUPABASE_JWT_SECRET`, a servlet `JwtAuthenticationFilter` on `/api/*`, and
   `AuthContext.getUserId(request)` for controllers. `/api/health` stays public.
+- **2026-08-12:** Application CRUD uses JPA entity + repository with
+  `findByIdAndUserId` for ownership checks. Request/response DTOs separate from
+  entity; `user_id` always set from `AuthContext`, never from client body.
+  Standalone MockMvc tests must use Jackson 3 (`JsonMapper` +
+  `JacksonJsonHttpMessageConverter`), not `MappingJackson2HttpMessageConverter`.
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 2 — Auth (complete)
-**Last updated by:** Agent session 2026-08-12 (backend JWT filter + user id)
-**Summary:** Phase 2 auth is complete. Frontend uses Supabase Auth; backend
-validates `Authorization: Bearer` tokens with `JwtAuthenticationFilter` (jjwt,
-HS256, `role=authenticated`). Controllers get the user id via
-`AuthContext.getUserId(request)` — never from client input. `GET /api/health`
-is public; `GET /api/me` verifies auth wiring.
+**Phase:** Phase 3 — Backend CRUD (in progress)
+**Last updated by:** Agent session 2026-08-12 (Application CRUD)
+**Summary:** Application full CRUD is done — `Application` entity, repository,
+service, and `ApplicationController` at `/api/applications` (GET list, GET by id,
+POST, PUT, DELETE). All queries scoped by `AuthContext.getUserId`. Bean Validation
+on create/update DTOs; 404 via `ResponseStatusException` when not owned/found.
+Unit + controller tests pass (20 total).
 
-Next actionable task: **Phase 3 — Application model/service/repository/controller
-(full CRUD)**.
+Next actionable task: **Phase 3 — Interview model/service/repository/controller**.
 
 ---
 
@@ -293,7 +297,7 @@ lives, repro steps if known, suspected cause if known.)*
 - [x] Backend: derive `user_id` from validated token, never trust client input
 
 ### Phase 3 — Backend CRUD
-- [ ] Application model/service/repository/controller (full CRUD)
+- [x] Application model/service/repository/controller (full CRUD)
 - [ ] Interview model/service/repository/controller
 - [ ] Contact model/service/repository/controller
 - [ ] Centralized error handling (`@ControllerAdvice`)
@@ -385,3 +389,7 @@ short — this is a log, not a diary.)*
 - **2026-08-12 — Phase 2, tasks 2–3:** Backend JWT auth — `JwtAuthenticationFilter`
   on `/api/*`, `SupabaseJwtValidator` (jjwt HS256), `AuthContext.getUserId()`,
   `GET /api/me` test endpoint. Unit + context tests pass.
+- **2026-08-12 — Phase 3, task 1:** Application CRUD — JPA entity, repository,
+  service, controller (`/api/applications`), create/update DTOs with validation,
+  user-scoped queries via `findByIdAndUserId`. Service + controller unit tests;
+  all 20 backend tests pass.
