@@ -200,20 +200,23 @@ already specified above. Newest at the bottom.)*
   `.env.example` templates in `jobtrack-backend/` and `frontend/`. Setup guide
   at `docs/SUPABASE_SETUP.md`. JDBC URL must use `jdbc:postgresql://...` with
   `?sslmode=require`.
+- **2026-08-12:** Firebase Hosting config lives inside `frontend/` to match the
+  static frontend deployment boundary. Use `npm exec --yes firebase-tools -- ...`
+  instead of assuming a global Firebase CLI install.
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 0 — Project Setup (in progress)
-**Last updated by:** Agent session 2026-08-12 (task 3)
-**Summary:** Supabase agent prep complete — `docs/SUPABASE_SETUP.md` (dashboard
-steps, JDBC URL format, JWT secret, verification checklist), plus
-`jobtrack-backend/.env.example` and `frontend/.env.example`. **User must**
-create the Supabase project and copy credentials into local `.env` files before
-Phase 1 migrations can run. Next agent task: **Create Firebase project for
-hosting, `firebase init`** (can proceed in parallel with user Supabase setup).
-JDK 21 still not verified locally.
+**Last updated by:** Agent session 2026-08-12 (task 4)
+**Summary:** Firebase Hosting repo prep complete — `frontend/firebase.json`,
+`frontend/.firebaserc.example`, and `docs/FIREBASE_SETUP.md` added. Actual
+Firebase project creation / CLI login still requires user account access.
+Supabase local `.env` files appear to exist now, but backend verification is
+still blocked on local JDK 21. Next agent task: **Create Render service
+pointing at `jobtrack-backend/`** or verify `.gitignore` coverage if the user
+prefers to finish remaining Phase 0 cleanup first.
 
 ---
 
@@ -248,7 +251,10 @@ lives, repro steps if known, suspected cause if known.)*
 - [x] Prepare Supabase setup (`docs/SUPABASE_SETUP.md`, `.env.example` templates)
 - [ ] **User:** Create Supabase project + fill `jobtrack-backend/.env` and
       `frontend/.env` (see `docs/SUPABASE_SETUP.md`) — blocks Phase 1
-- [ ] Create Firebase project for hosting, `firebase init`
+- [x] Prepare Firebase Hosting setup (`frontend/firebase.json`,
+      `frontend/.firebaserc.example`, `docs/FIREBASE_SETUP.md`)
+- [ ] **User:** Create Firebase project, log in with Firebase CLI, and create
+      `frontend/.firebaserc` from the example file
 - [ ] Create Render service pointing at `jobtrack-backend/`
 - [ ] Add `.env.example` and `.gitignore` for both frontend and backend
       (`.env.example` done; confirm `.gitignore` coverage)
@@ -327,3 +333,8 @@ short — this is a log, not a diary.)*
   `jobtrack-backend/.env.example`, `frontend/.env.example`. Actual Supabase
   project creation requires user dashboard access; split into separate user
   backlog item.
+- **2026-08-12 — Phase 0, task 4:** Firebase Hosting agent prep —
+  `frontend/firebase.json`, `frontend/.firebaserc.example`, and
+  `docs/FIREBASE_SETUP.md` added. Verified `firebase-tools` can be run via
+  `npm exec`; actual project creation and CLI login require user account
+  access, so split into a separate user backlog item.
