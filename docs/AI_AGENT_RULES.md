@@ -203,20 +203,22 @@ already specified above. Newest at the bottom.)*
 - **2026-08-12:** Firebase Hosting config lives inside `frontend/` to match the
   static frontend deployment boundary. Use `npm exec --yes firebase-tools -- ...`
   instead of assuming a global Firebase CLI install.
+- **2026-08-12:** Render deployment is managed from a repo-root `render.yaml`
+  Blueprint, with `jobtrack-backend/` as the service `rootDir` and secrets
+  provided in the Render dashboard via `sync: false` env vars.
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 0 — Project Setup (in progress)
-**Last updated by:** Agent session 2026-08-12 (task 4)
-**Summary:** Firebase Hosting repo prep complete — `frontend/firebase.json`,
-`frontend/.firebaserc.example`, and `docs/FIREBASE_SETUP.md` added. Actual
-Firebase project creation / CLI login still requires user account access.
-Supabase local `.env` files appear to exist now, but backend verification is
-still blocked on local JDK 21. Next agent task: **Create Render service
-pointing at `jobtrack-backend/`** or verify `.gitignore` coverage if the user
-prefers to finish remaining Phase 0 cleanup first.
+**Last updated by:** Agent session 2026-08-12 (task 5)
+**Summary:** Render backend deployment prep complete — repo-root `render.yaml`
+and `docs/RENDER_SETUP.md` added. Actual Render service creation requires a
+GitHub remote plus Render dashboard access. Local `jobtrack-backend/.env`,
+`frontend/.env`, and `frontend/.firebaserc` files now exist, but their contents
+were not re-verified by the agent. Next actionable local task: **confirm
+`.gitignore` coverage for frontend/backend env files and generated artifacts**.
 
 ---
 
@@ -255,7 +257,9 @@ lives, repro steps if known, suspected cause if known.)*
       `frontend/.firebaserc.example`, `docs/FIREBASE_SETUP.md`)
 - [ ] **User:** Create Firebase project, log in with Firebase CLI, and create
       `frontend/.firebaserc` from the example file
-- [ ] Create Render service pointing at `jobtrack-backend/`
+- [x] Prepare Render backend deployment (`render.yaml`, `docs/RENDER_SETUP.md`)
+- [ ] **User:** Create Render Blueprint/service from `render.yaml`, connect
+      GitHub repo, and set backend env vars
 - [ ] Add `.env.example` and `.gitignore` for both frontend and backend
       (`.env.example` done; confirm `.gitignore` coverage)
 
@@ -338,3 +342,8 @@ short — this is a log, not a diary.)*
   `docs/FIREBASE_SETUP.md` added. Verified `firebase-tools` can be run via
   `npm exec`; actual project creation and CLI login require user account
   access, so split into a separate user backlog item.
+- **2026-08-12 — Phase 0, task 5:** Render backend deployment prep —
+  repo-root `render.yaml` and `docs/RENDER_SETUP.md` added. Blueprint targets
+  `jobtrack-backend/` with Java 21, `/api/health`, and Supabase env var names.
+  Actual Render service creation depends on GitHub remote setup plus Render
+  dashboard access, so split into a separate user backlog item.

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: jobtrack-backend
+    runtime: java
+    rootDir: jobtrack-backend
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -jar target/jobtrack-backend-*.jar
+    healthCheckPath: /api/health
+    envVars:
+      - key: JAVA_VERSION
+        value: "21"
+      - key: SUPABASE_DB_URL
+        sync: false
+      - key: SUPABASE_DB_USER
+        sync: false
+      - key: SUPABASE_DB_PASSWORD
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
