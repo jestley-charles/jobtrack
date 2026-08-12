@@ -6,6 +6,8 @@ services:
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     envVars:
+      - key: HIBERNATE_DDL_AUTO
+        value: "none"
       - key: SUPABASE_DB_URL
         sync: false
       - key: SUPABASE_DB_USER

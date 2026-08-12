@@ -208,16 +208,23 @@ already specified above. Newest at the bottom.)*
   provided in the Render dashboard via `sync: false` env vars.
 - **2026-08-12:** Render has no native Java runtime — backend deploys via Docker
   (`jobtrack-backend/Dockerfile`, Eclipse Temurin 21 multi-stage build).
+- **2026-08-12:** Render/container startup fix — Hibernate schema validation
+  disabled by default (`HIBERNATE_DDL_AUTO=none`) and Hikari fail-fast turned
+  off (`spring.datasource.hikari.initialization-fail-timeout=0`) so the service
+  can start before Phase 1 migrations / DB connectivity is ready.
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 0 — Project Setup (in progress)
-**Last updated by:** Agent session 2026-08-12 (Render Docker fix)
-**Summary:** Render backend deploy switched from nonexistent `runtime: java` to
-Docker (`jobtrack-backend/Dockerfile` + updated `render.yaml`). Actual Render
-service creation still requires GitHub remote plus Render dashboard access.
+**Last updated by:** Agent session 2026-08-12 (Render Docker + startup fix)
+**Summary:** Render backend deploy switched to Docker (no native Java runtime),
+and the app no longer crashes on startup when Supabase/migrations aren’t ready
+yet. Updated `application.properties` to default Hibernate schema behavior to
+`none` and turned Hikari fail-fast off; `render.yaml` pins
+`HIBERNATE_DDL_AUTO=none`. Actual Render service creation still requires GitHub
+remote plus Render dashboard access.
 Next actionable local task: **confirm `.gitignore` coverage for frontend/backend
 env files and generated artifacts**.
 
@@ -351,3 +358,6 @@ short — this is a log, not a diary.)*
 - **2026-08-12 — Render fix:** Replaced invalid `runtime: java` with Docker
   deployment — added `jobtrack-backend/Dockerfile` (Temurin 21 multi-stage)
   and updated `render.yaml` / `docs/RENDER_SETUP.md`.
+- **2026-08-12 — Render startup fix:** Prevent startup crash when Supabase
+  is unreachable / migrations aren’t applied yet by disabling Hibernate DDL
+  validation by default and disabling Hikari fail-fast.
