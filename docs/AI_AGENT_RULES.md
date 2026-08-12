@@ -220,22 +220,24 @@ already specified above. Newest at the bottom.)*
   `npm run config` from `frontend/` after editing `.env`. Committed templates:
   `frontend/.env.example` and `frontend/js/config.example.js`. Auth uses
   `@supabase/supabase-js` via CDN (no bundler).
+- **2026-08-12:** Backend JWT validation uses `jjwt` (HS256) with
+  `SUPABASE_JWT_SECRET`, a servlet `JwtAuthenticationFilter` on `/api/*`, and
+  `AuthContext.getUserId(request)` for controllers. `/api/health` stays public.
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 2 — Auth (in progress)
-**Last updated by:** Agent session 2026-08-12 (frontend Supabase Auth wired)
-**Summary:** Phase 1 complete (Flyway migrations applied). Phase 2 started:
-frontend sign up / log in via Supabase Auth is implemented with
-`login.html`, `signup.html`, a protected `dashboard.html` placeholder,
-`js/auth.js`, `js/supabase-client.js`, and `js/api.js` (Bearer token helper
-for upcoming backend calls). Config is generated from `frontend/.env` via
-`npm run config` → `js/config.js`.
+**Phase:** Phase 2 — Auth (complete)
+**Last updated by:** Agent session 2026-08-12 (backend JWT filter + user id)
+**Summary:** Phase 2 auth is complete. Frontend uses Supabase Auth; backend
+validates `Authorization: Bearer` tokens with `JwtAuthenticationFilter` (jjwt,
+HS256, `role=authenticated`). Controllers get the user id via
+`AuthContext.getUserId(request)` — never from client input. `GET /api/health`
+is public; `GET /api/me` verifies auth wiring.
 
-Next actionable task: **Backend JWT validation filter** (verify
-Supabase-issued tokens on API requests).
+Next actionable task: **Phase 3 — Application model/service/repository/controller
+(full CRUD)**.
 
 ---
 
@@ -287,8 +289,8 @@ lives, repro steps if known, suspected cause if known.)*
 
 ### Phase 2 — Auth
 - [x] Wire up Supabase Auth sign up / log in on frontend
-- [ ] Backend JWT validation filter (verify Supabase-issued tokens)
-- [ ] Backend: derive `user_id` from validated token, never trust client input
+- [x] Backend JWT validation filter (verify Supabase-issued tokens)
+- [x] Backend: derive `user_id` from validated token, never trust client input
 
 ### Phase 3 — Backend CRUD
 - [ ] Application model/service/repository/controller (full CRUD)
@@ -380,3 +382,6 @@ short — this is a log, not a diary.)*
   `frontend/.env.example`, `js/config.example.js`, `npm run config` script.
   Fixed `.gitignore` to allow `.env.example` files; added
   `jobtrack-backend/.env.example`.
+- **2026-08-12 — Phase 2, tasks 2–3:** Backend JWT auth — `JwtAuthenticationFilter`
+  on `/api/*`, `SupabaseJwtValidator` (jjwt HS256), `AuthContext.getUserId()`,
+  `GET /api/me` test endpoint. Unit + context tests pass.
