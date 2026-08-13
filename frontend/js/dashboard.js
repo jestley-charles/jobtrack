@@ -222,17 +222,10 @@
     errorEl.textContent = '';
 
     try {
-      const [applicationsResponse, interviewsResponse] = await Promise.all([
-        JobTrackApi.fetch('/api/applications'),
-        JobTrackApi.fetch('/api/interviews'),
+      const [applications, interviews] = await Promise.all([
+        JobTrackApi.fetchJsonList('/api/applications'),
+        JobTrackApi.fetchJsonList('/api/interviews'),
       ]);
-
-      if (!applicationsResponse.ok || !interviewsResponse.ok) {
-        throw new Error('Could not load dashboard data. Please try again.');
-      }
-
-      const applications = await applicationsResponse.json();
-      const interviews = await interviewsResponse.json();
 
       renderStatCards(applications, interviews);
       renderStatusChart(countByStatus(applications));

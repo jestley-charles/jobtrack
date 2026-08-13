@@ -39,6 +39,36 @@
     return ' Check that the backend is deployed and API_URL in frontend/.env is correct.';
   }
 
+  async function readErrorMessage(response) {
+    try {
+      const body = await response.json();
+      if (body && typeof body.message === 'string' && body.message) {
+        return body.message;
+      }
+    } catch (err) {
+      // ignore non-JSON error bodies
+    }
+    return null;
+  }
+
+  async function fetchJson(path, options) {
+    const response = await apiFetch(path, options);
+    if (!response.ok) {
+      const detail = await readErrorMessage(response);
+      throw new Error(detail || 'Request failed (' + response.status + '). Please try again.');
+    }
+    try {
+      return await response.json();
+    } catch (err) {
+      throw new Error('Could not parse the server response.');
+    }
+  }
+
+  async function fetchJsonList(path, options) {
+    const data = await fetchJson(path, options);
+    return Array.isArray(data) ? data : [];
+  }
+
   async function apiFetch(path, options) {
     const token = await window.JobTrackAuth.getAccessToken();
     if (!token) {
@@ -76,5 +106,7 @@
   window.JobTrackApi = {
     getApiUrl,
     fetch: apiFetch,
+    fetchJson,
+    fetchJsonList,
   };
 })();

@@ -269,20 +269,25 @@ already specified above. Newest at the bottom.)*
   existing `/api/applications` + `/api/interviews` payloads (no activity/audit
   API). Events: added, applied, interview, offer, rejection — sorted by date,
   capped at 15 items.
+- **2026-08-13:** Supabase direct DB host (`db.*.supabase.co`) is IPv6-only.
+  Render and many dev networks are IPv4-only — use Supavisor session pooler
+  (`aws-0-[region].pooler.supabase.com:5432`, user `postgres.[project-ref]`) for
+  backend JDBC. Direct connection is fine only on IPv6-capable local networks.
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 5 — Frontend Features (complete)
-**Last updated by:** Agent session 2026-08-13 (JWKS JWT validation for Supabase signing keys)
-**Summary:** Dashboard includes a recent activity feed — client-side timeline from
-applications (added, applied, offer, rejection) and interviews, with links to
-application detail. Phase 5 frontend features are complete. Backend now verifies
-Supabase ES256 user tokens via JWKS when `SUPABASE_URL` is set (required after
-JWT Signing Keys migration).
+**Last updated by:** Agent session 2026-08-13 (dashboard/jobs empty-state fix — Supabase pooler)
+**Summary:** Fixed dashboard/jobs showing load errors instead of empty states when a user
+has no data. Root cause: backend on Render could not reach Supabase over the direct
+IPv6-only DB host; list endpoints returned 500. Documented and switched to Supavisor
+session pooler (IPv4). Also fixed `supabase.jwt-secret` ConfigurationProperties binding
+and added `JobTrackApi.fetchJsonList` for list endpoints.
 
-Next actionable task: **Phase 6 — Kanban columns**.
+Next actionable task: **Phase 6 — Kanban columns**. **User action:** update Render env
+vars to pooler URL + `postgres.[project-ref]` username, then redeploy backend.
 
 ---
 
@@ -302,6 +307,10 @@ the task is finished.)*
 lives, repro steps if known, suspected cause if known.)*
 
 - *(no known issues)*
+
+**User action after this fix:** In the Render dashboard, set backend env vars to the
+Supavisor session pooler (see `docs/RENDER_SETUP.md`) and redeploy. Until then, deployed
+API list calls may still return 500.
 
 ---
 
@@ -499,3 +508,8 @@ short — this is a log, not a diary.)*
   `SupabaseJwksProvider` + `SUPABASE_URL` env; validator supports both algorithms.
   Root cause of login-then-immediate-401 loop when legacy secret matched but tokens
   were asymmetrically signed.
+- **2026-08-13 — fix:** Dashboard/jobs error instead of empty state — Supabase direct
+  DB host is IPv6-only; Render (IPv4) could not connect, so `/api/applications` and
+  `/api/interviews` returned 500. Fix: use Supavisor session pooler JDBC URL + user
+  `postgres.[project-ref]`. Flattened `SupabaseJwtProperties` binding for
+  `supabase.jwt-secret`. Frontend: `JobTrackApi.fetchJsonList` for list endpoints.

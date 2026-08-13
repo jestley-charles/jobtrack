@@ -10,7 +10,11 @@ public class SupabaseJwtProperties {
 	 */
 	private String url;
 
-	private Jwt jwt = new Jwt();
+	/**
+	 * Legacy HS256 JWT secret. Bound from {@code supabase.jwt-secret} in
+	 * {@code application.properties} (Spring relaxed binding).
+	 */
+	private String jwtSecret;
 
 	public String getUrl() {
 		return url;
@@ -20,26 +24,21 @@ public class SupabaseJwtProperties {
 		this.url = url;
 	}
 
+	public String getJwtSecret() {
+		return jwtSecret;
+	}
+
+	public void setJwtSecret(String jwtSecret) {
+		this.jwtSecret = jwtSecret;
+	}
+
+	/** Alias used by {@link com.jobtrack.security.SupabaseJwtValidator}. */
 	public String getSecret() {
-		return jwt.getSecret();
+		return jwtSecret;
 	}
 
 	public void setSecret(String secret) {
-		jwt.setSecret(secret);
-	}
-
-	public static class Jwt {
-
-		private String secret;
-
-		public String getSecret() {
-			return secret;
-		}
-
-		public void setSecret(String secret) {
-			this.secret = secret;
-		}
-
+		this.jwtSecret = secret;
 	}
 
 }

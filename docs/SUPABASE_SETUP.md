@@ -31,12 +31,24 @@ Supabase shows a URI like:
 postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
 ```
 
-For Spring Boot, use the **direct** connection (port **5432**, not the pooler) unless you configure pooling separately:
+For Spring Boot, use the **direct** connection (port **5432**, not the pooler) only if your runtime supports **IPv6** (uncommon on Render, GitHub Actions, and some local networks):
 
 | Variable | Where to find it |
 |---|---|
-| `SUPABASE_DB_URL` | `jdbc:postgresql://db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require` — replace `[PROJECT-REF]` with your project reference (also visible in **Settings → General → Reference ID**) |
+| `SUPABASE_DB_URL` | `jdbc:postgresql://db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require` |
 | `SUPABASE_DB_USER` | `postgres` |
+
+**Render and other IPv4-only hosts** must use the **Supavisor session pooler** instead (Dashboard → **Connect** → **Session mode**). Use JDBC form:
+
+| Variable | Example |
+|---|---|
+| `SUPABASE_DB_URL` | `jdbc:postgresql://aws-0-[AWS-REGION].pooler.supabase.com:5432/postgres?sslmode=require` |
+| `SUPABASE_DB_USER` | `postgres.[PROJECT-REF]` (not plain `postgres`) |
+
+The pooler hostname includes your project's AWS region (e.g. `ap-northeast-1`). Copy it from the dashboard — do not guess the region.
+
+| Variable | Where to find it |
+|---|---|
 | `SUPABASE_DB_PASSWORD` | The database password you set when creating the project |
 
 **Alternative:** Under **Database → Connection string → JDBC**, Supabase may show a ready-made JDBC URL. Append `?sslmode=require` if it is missing.
@@ -76,14 +88,17 @@ copy frontend\.env.example frontend\.env
 
 Edit both files and paste your real values. `.env` files are gitignored.
 
-**`jobtrack-backend/.env` example:**
+**`jobtrack-backend/.env` example (Render / IPv4 — use pooler):**
 
 ```env
-SUPABASE_DB_URL=jdbc:postgresql://db.abcdefghijklmnop.supabase.co:5432/postgres?sslmode=require
-SUPABASE_DB_USER=postgres
+SUPABASE_DB_URL=jdbc:postgresql://aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+SUPABASE_DB_USER=postgres.abcdefghijklmnop
 SUPABASE_DB_PASSWORD=your-database-password-here
+SUPABASE_URL=https://abcdefghijklmnop.supabase.co
 SUPABASE_JWT_SECRET=your-jwt-secret-here
 ```
+
+**Local dev on IPv6-capable networks** may use the direct connection instead (`db.[REF].supabase.co`, user `postgres`).
 
 **`frontend/.env` example:**
 

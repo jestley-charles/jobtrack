@@ -40,15 +40,15 @@ Render should prompt for the `sync: false` values from `render.yaml`:
 - `SUPABASE_DB_URL`
 - `SUPABASE_DB_USER`
 - `SUPABASE_DB_PASSWORD`
-- `SUPABASE_JWT_SECRET`
+- `SUPABASE_URL` (required for ES256 user tokens via JWKS)
+- `SUPABASE_JWT_SECRET` (optional legacy HS256 fallback)
 
 Notes:
 
-- `SUPABASE_DB_URL` should be the JDBC form used by Spring Boot, for example:
-
-```text
-jdbc:postgresql://db.YOUR_PROJECT_REF.supabase.co:5432/postgres?sslmode=require
-```
+- **Render is IPv4-only.** Do not use the direct Supabase host `db.*.supabase.co` (IPv6-only). Use the **Supavisor session pooler** from Supabase Dashboard → **Connect** → **Session mode**:
+  - `SUPABASE_DB_URL`: `jdbc:postgresql://aws-0-[AWS-REGION].pooler.supabase.com:5432/postgres?sslmode=require`
+  - `SUPABASE_DB_USER`: `postgres.[PROJECT-REF]` (include the project ref suffix)
+- After changing DB env vars on Render, redeploy the backend service.
 
 - Render automatically provides `PORT`, which already matches
   `server.port=${PORT:8080}` in `application.properties`.

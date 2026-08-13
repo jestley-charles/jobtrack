@@ -156,12 +156,7 @@
     errorEl.textContent = '';
 
     try {
-      const response = await JobTrackApi.fetch('/api/applications');
-      if (!response.ok) {
-        throw new Error('Could not load applications. Please try again.');
-      }
-
-      const applications = await response.json();
+      const applications = await JobTrackApi.fetchJsonList('/api/applications');
 
       loadingEl.hidden = true;
 
