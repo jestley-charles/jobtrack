@@ -28,6 +28,17 @@
     return error.message;
   }
 
+  function clearDataCache() {
+    try {
+      sessionStorage.removeItem('jobtrack.dataCache.v1');
+    } catch (err) {
+      // ignore
+    }
+    if (window.JobTrackDataCache && typeof window.JobTrackDataCache.invalidate === 'function') {
+      window.JobTrackDataCache.invalidate();
+    }
+  }
+
   async function clearLocalSession() {
     try {
       await getClient().auth.signOut({ scope: 'local' });
@@ -39,6 +50,7 @@
         localStorage.removeItem(key);
       }
     });
+    clearDataCache();
   }
 
   async function getSession() {
@@ -77,6 +89,7 @@
 
   async function signOut() {
     const { error } = await getClient().auth.signOut();
+    clearDataCache();
     if (error) {
       throw new Error(formatAuthError(error));
     }

@@ -247,6 +247,7 @@
     if (application.updatedAt != null) {
       application.updatedAt = new Date().toISOString();
     }
+    JobTrackDataCache.replaceApplication(application);
     renderList(cachedApplications);
     renderKanban(cachedApplications);
     hideJobsError();
@@ -260,10 +261,12 @@
         }
       );
       Object.assign(application, updated);
+      JobTrackDataCache.replaceApplication(application);
       renderList(cachedApplications);
       renderKanban(cachedApplications);
     } catch (err) {
       application.status = previousStatus;
+      JobTrackDataCache.replaceApplication(application);
       renderList(cachedApplications);
       renderKanban(cachedApplications);
       showJobsError(err.message || 'Could not update application status.');
@@ -426,29 +429,43 @@
     showActiveView();
   }
 
-  async function loadApplications() {
+  async function loadApplications(options) {
+    const force = Boolean(options && options.force);
     const loadingEl = document.getElementById('jobs-loading');
     const errorEl = document.getElementById('jobs-error');
     const emptyEl = document.getElementById('jobs-empty');
     const listEl = document.getElementById('jobs-content');
     const boardEl = document.getElementById('kanban-board');
     const countEl = document.getElementById('jobs-count');
+    const refreshBtn = document.getElementById('jobs-refresh-btn');
+    const hadCache = JobTrackDataCache.hasData();
 
-    loadingEl.hidden = false;
+    if (!hadCache || force) {
+      loadingEl.hidden = false;
+      emptyEl.hidden = true;
+      listEl.hidden = true;
+      boardEl.hidden = true;
+      countEl.hidden = true;
+    }
     errorEl.hidden = true;
-    emptyEl.hidden = true;
-    listEl.hidden = true;
-    boardEl.hidden = true;
-    countEl.hidden = true;
     errorEl.textContent = '';
+    if (refreshBtn) {
+      refreshBtn.disabled = true;
+    }
 
     try {
-      const applications = await JobTrackApi.fetchJsonList('/api/applications');
+      const data = force
+        ? await JobTrackDataCache.refresh()
+        : await JobTrackDataCache.ensureLoaded();
+      const applications = data.applications;
 
       loadingEl.hidden = true;
 
       if (!applications.length) {
         emptyEl.hidden = false;
+        listEl.hidden = true;
+        boardEl.hidden = true;
+        countEl.hidden = true;
         cachedApplications = [];
         return;
       }
@@ -458,6 +475,10 @@
       loadingEl.hidden = true;
       errorEl.textContent = err.message || 'Something went wrong loading applications.';
       errorEl.hidden = false;
+    } finally {
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+      }
     }
   }
 
@@ -486,7 +507,14 @@
 
     currentView = readStoredView();
     updateViewToggleUi();
-    JobTrackApplicationForm.init({ onSaved: loadApplications });
+    JobTrackApplicationForm.init({
+      onSaved: function () {
+        loadApplications({ force: true });
+      },
+    });
+    document.getElementById('jobs-refresh-btn').addEventListener('click', function () {
+      loadApplications({ force: true });
+    });
     wireAddButtons();
     wireViewToggle();
     wireKanbanDragAndDrop();

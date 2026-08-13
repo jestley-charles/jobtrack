@@ -290,18 +290,21 @@ already specified above. Newest at the bottom.)*
   `applicationId` on application detail; interviews page shows application
   select. `datetime-local` converted to/from ISO 8601 Instant. Delete available
   on application detail interview rows.
+- **2026-08-14:** List API data (applications + interviews) is cached in
+  `sessionStorage` via `js/data-cache.js` (`JobTrackDataCache`). Nav page
+  switches reuse the cache (`ensureLoaded`); **Refresh** buttons and
+  create/edit/delete flows call `refresh` / in-place cache updates. Cache is
+  cleared on logout. Not an SPA — still multi-page HTML; cache bridges reloads.
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 7 — Interviews (complete)
-**Last updated by:** Agent session 2026-08-14 (add/edit interview)
-**Summary:** Users can add and edit interviews via a shared modal
-  (`JobTrackInterviewForm`). Application detail: Add interview (locked to that
-  app) + Edit/Delete per row. Interviews page: Add interview with application
-  select (defaults date to selected calendar day) + Edit from agenda. Phase 7
-  complete.
+**Last updated by:** Agent session 2026-08-14 (data cache on tab switch)
+**Summary:** Phase 7 complete. Dashboard / Jobs / Interviews / application
+  detail no longer re-fetch list APIs on every nav click — `JobTrackDataCache`
+  loads once per browser session (until Refresh or mutation/logout).
 
 Next actionable task: **Phase 8 — Deploy backend to Render, confirm env vars set**.
 
@@ -548,3 +551,8 @@ short — this is a log, not a diary.)*
 - **2026-08-14 — Phase 7, task 3:** Add/edit interview — shared
   `JobTrackInterviewForm` modal (POST/PUT); application detail Add + Edit/Delete;
   interviews page Add with application select + Edit from agenda. Phase 7 complete.
+- **2026-08-14 — fix:** Tab/nav switches no longer re-fetch all list data.
+  Added `js/data-cache.js` (sessionStorage cache for applications + interviews),
+  Refresh buttons on dashboard/jobs/interviews/application detail, cache
+  invalidation on logout, and force-refresh after create/edit/delete + kanban
+  status PATCH updates the cache in place.

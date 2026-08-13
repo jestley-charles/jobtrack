@@ -384,35 +384,46 @@
 
   async function loadInterviews(options) {
     const preserveSelection = options && options.preserveSelection;
+    const force = Boolean(options && options.force);
     const loadingEl = document.getElementById('interviews-loading');
     const errorEl = document.getElementById('interviews-error');
     const contentEl = document.getElementById('interviews-content');
+    const refreshBtn = document.getElementById('interviews-refresh-btn');
     const wasLoaded = !contentEl.hidden;
+    const hadCache = JobTrackDataCache.hasData();
 
-    if (!wasLoaded) {
+    if ((!wasLoaded && !hadCache) || force) {
       loadingEl.hidden = false;
-      errorEl.hidden = true;
-      contentEl.hidden = true;
+      if (!wasLoaded) {
+        contentEl.hidden = true;
+      }
     }
+    errorEl.hidden = true;
     errorEl.textContent = '';
+    if (refreshBtn) {
+      refreshBtn.disabled = true;
+    }
 
     try {
-      const [applications, interviews] = await Promise.all([
-        JobTrackApi.fetchJsonList('/api/applications'),
-        JobTrackApi.fetchJsonList('/api/interviews'),
-      ]);
+      const data = force
+        ? await JobTrackDataCache.refresh()
+        : await JobTrackDataCache.ensureLoaded();
 
-      applyLoadedData(applications, interviews, preserveSelection);
+      applyLoadedData(data.applications, data.interviews, preserveSelection);
 
       loadingEl.hidden = true;
       contentEl.hidden = false;
     } catch (err) {
       loadingEl.hidden = true;
-      if (!wasLoaded) {
+      if (!wasLoaded && !JobTrackDataCache.hasData()) {
         contentEl.hidden = true;
       }
       errorEl.textContent = err.message || 'Something went wrong loading interviews.';
       errorEl.hidden = false;
+    } finally {
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+      }
     }
   }
 
@@ -423,12 +434,15 @@
 
     JobTrackInterviewForm.init({
       onSaved: function () {
-        loadInterviews({ preserveSelection: true });
+        loadInterviews({ preserveSelection: true, force: true });
       },
     });
 
     bindToolbar();
     document.getElementById('add-interview-btn').addEventListener('click', openAddInterview);
+    document.getElementById('interviews-refresh-btn').addEventListener('click', function () {
+      loadInterviews({ preserveSelection: true, force: true });
+    });
     loadInterviews();
   });
 })();

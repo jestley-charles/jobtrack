@@ -242,16 +242,29 @@
     });
   }
 
-  async function loadInterviews(applicationId) {
+  function interviewsForApplication(applicationId) {
+    const allInterviews = JobTrackDataCache.getInterviews() || [];
+    return allInterviews.filter(function (interview) {
+      return interview.applicationId === applicationId;
+    });
+  }
+
+  async function loadInterviews(applicationId, options) {
+    const force = Boolean(options && options.force);
     const loadingEl = document.getElementById('interviews-loading');
-    loadingEl.hidden = false;
+    const hadCache = JobTrackDataCache.hasData();
+
+    if (!hadCache || force) {
+      loadingEl.hidden = false;
+    }
 
     try {
-      const allInterviews = await JobTrackApi.fetchJsonList('/api/interviews');
-      const forApplication = allInterviews.filter(function (interview) {
-        return interview.applicationId === applicationId;
-      });
-      renderInterviews(forApplication);
+      if (force) {
+        await JobTrackDataCache.refreshInterviews();
+      } else {
+        await JobTrackDataCache.ensureLoaded();
+      }
+      renderInterviews(interviewsForApplication(applicationId));
     } catch (err) {
       loadingEl.hidden = true;
       renderInterviews([]);
@@ -276,8 +289,9 @@
         throw new Error('Could not delete interview. Please try again.');
       }
 
+      JobTrackDataCache.removeInterview(interview.id);
       if (currentApplication) {
-        loadInterviews(currentApplication.id);
+        renderInterviews(interviewsForApplication(currentApplication.id));
       }
     } catch (err) {
       alert(err.message || 'Something went wrong.');
@@ -293,36 +307,52 @@
     errorEl.hidden = false;
   }
 
-  async function loadApplication(applicationId) {
+  async function loadApplication(applicationId, options) {
+    const force = Boolean(options && options.force);
     const loadingEl = document.getElementById('application-loading');
     const errorEl = document.getElementById('application-error');
     const contentEl = document.getElementById('application-content');
+    const refreshBtn = document.getElementById('application-refresh-btn');
+    const hadCache = JobTrackDataCache.hasData();
 
-    loadingEl.hidden = false;
+    if (!hadCache || force) {
+      loadingEl.hidden = false;
+      if (!hadCache) {
+        contentEl.hidden = true;
+      }
+    }
     errorEl.hidden = true;
-    contentEl.hidden = true;
+
+    if (refreshBtn) {
+      refreshBtn.disabled = true;
+    }
 
     try {
-      const response = await JobTrackApi.fetch('/api/applications/' + applicationId);
+      const data = force
+        ? await JobTrackDataCache.refresh()
+        : await JobTrackDataCache.ensureLoaded();
 
-      if (response.status === 404) {
+      const application = data.applications.find(function (app) {
+        return app.id === applicationId;
+      });
+
+      if (!application) {
         showError('Application not found. It may have been deleted.');
         return;
       }
 
-      if (!response.ok) {
-        throw new Error('Could not load application. Please try again.');
-      }
-
-      currentApplication = await response.json();
+      currentApplication = application;
       renderApplicationDetails(currentApplication);
+      renderInterviews(interviewsForApplication(applicationId));
 
       loadingEl.hidden = true;
       contentEl.hidden = false;
-
-      loadInterviews(applicationId);
     } catch (err) {
       showError(err.message || 'Something went wrong loading this application.');
+    } finally {
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+      }
     }
   }
 
@@ -351,6 +381,7 @@
         throw new Error('Could not delete application. Please try again.');
       }
 
+      JobTrackDataCache.removeApplication(currentApplication.id);
       window.location.href = 'jobs.html';
     } catch (err) {
       deleteBtn.disabled = false;
@@ -374,6 +405,16 @@
         });
       }
     });
+
+    const refreshBtn = document.getElementById('application-refresh-btn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', function () {
+        const applicationId = getApplicationId();
+        if (applicationId) {
+          loadApplication(applicationId, { force: true });
+        }
+      });
+    }
   }
 
   JobTrackAppShell.init({ page: 'jobs' }).then(function (session) {
@@ -389,13 +430,13 @@
 
     JobTrackApplicationForm.init({
       onSaved: function () {
-        loadApplication(applicationId);
+        loadApplication(applicationId, { force: true });
       },
     });
 
     JobTrackInterviewForm.init({
       onSaved: function () {
-        loadInterviews(applicationId);
+        loadInterviews(applicationId, { force: true });
       },
     });
 

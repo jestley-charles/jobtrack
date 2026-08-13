@@ -353,39 +353,62 @@
     container.setAttribute('aria-label', 'Application counts by status. ' + summary);
   }
 
-  async function loadDashboardStats() {
+  function applyDashboardData(applications, interviews) {
+    renderStatCards(applications, interviews);
+    renderStatusChart(countByStatus(applications));
+    renderUpcomingInterviews(buildUpcomingInterviews(applications, interviews));
+    renderActivityFeed(buildActivityEvents(applications, interviews));
+  }
+
+  async function loadDashboardStats(options) {
+    const force = Boolean(options && options.force);
     const loadingEl = document.getElementById('dashboard-loading');
     const errorEl = document.getElementById('dashboard-error');
     const contentEl = document.getElementById('dashboard-content');
+    const refreshBtn = document.getElementById('dashboard-refresh-btn');
+    const hadCache = JobTrackDataCache.hasData();
 
-    loadingEl.hidden = false;
+    if (!hadCache || force) {
+      loadingEl.hidden = false;
+      contentEl.hidden = true;
+    }
     errorEl.hidden = true;
-    contentEl.hidden = true;
     errorEl.textContent = '';
+    if (refreshBtn) {
+      refreshBtn.disabled = true;
+    }
 
     try {
-      const [applications, interviews] = await Promise.all([
-        JobTrackApi.fetchJsonList('/api/applications'),
-        JobTrackApi.fetchJsonList('/api/interviews'),
-      ]);
+      const data = force
+        ? await JobTrackDataCache.refresh()
+        : await JobTrackDataCache.ensureLoaded();
 
-      renderStatCards(applications, interviews);
-      renderStatusChart(countByStatus(applications));
-      renderUpcomingInterviews(buildUpcomingInterviews(applications, interviews));
-      renderActivityFeed(buildActivityEvents(applications, interviews));
+      applyDashboardData(data.applications, data.interviews);
 
       loadingEl.hidden = true;
       contentEl.hidden = false;
     } catch (err) {
       loadingEl.hidden = true;
+      if (!JobTrackDataCache.hasData()) {
+        contentEl.hidden = true;
+      }
       errorEl.textContent = err.message || 'Something went wrong loading your stats.';
       errorEl.hidden = false;
+    } finally {
+      if (refreshBtn) {
+        refreshBtn.disabled = false;
+      }
     }
   }
 
   JobTrackAppShell.init({ page: 'dashboard' }).then(function (session) {
-    if (session) {
-      loadDashboardStats();
+    if (!session) {
+      return;
     }
+
+    document.getElementById('dashboard-refresh-btn').addEventListener('click', function () {
+      loadDashboardStats({ force: true });
+    });
+    loadDashboardStats();
   });
 })();
