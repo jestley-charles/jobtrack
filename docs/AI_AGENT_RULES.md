@@ -137,11 +137,16 @@ PUT    /api/applications/{id}
 DELETE /api/applications/{id}
 
 GET    /api/interviews
+GET    /api/interviews/{id}
 POST   /api/interviews
 PUT    /api/interviews/{id}
+DELETE /api/interviews/{id}
 
 GET    /api/contacts
+GET    /api/contacts/{id}
 POST   /api/contacts
+PUT    /api/contacts/{id}
+DELETE /api/contacts/{id}
 ```
 
 ### Database schema (Supabase / Postgres)
@@ -228,20 +233,36 @@ already specified above. Newest at the bottom.)*
   entity; `user_id` always set from `AuthContext`, never from client body.
   Standalone MockMvc tests must use Jackson 3 (`JsonMapper` +
   `JacksonJsonHttpMessageConverter`), not `MappingJackson2HttpMessageConverter`.
+- **2026-08-13:** Interview CRUD ownership is via parent application (no
+  `user_id` on `interviews`). Service verifies `application_id` with
+  `ApplicationRepository.findByIdAndUserId` on create; list/get/update/delete
+  use JPQL joining through `Application.userId`. Extended documented API with
+  `GET /{id}` and `DELETE /{id}` to match Application CRUD. `applicationId` is
+  immutable after create (not on update DTO). `interview_date` is `Instant`
+  (timestamptz / ISO 8601).
+- **2026-08-13:** Contact CRUD follows Application pattern — direct `user_id`
+  scoping via `findByIdAndUserId`. Extended documented API with GET/{id}, PUT,
+  DELETE beyond original sketch. Optional `email` validated with `@Email` when
+  provided.
+- **2026-08-13:** Centralized API errors via `GlobalExceptionHandler`
+  (`@RestControllerAdvice`) and `ApiErrorResponse` record (`error`, `message`,
+  optional `errors[]` with `{field, message}`). Validation → 400 with field list;
+  `ResponseStatusException` → matching status; malformed JSON / bad path params
+  → 400; missing auth context → 401; unexpected exceptions → 500 with generic
+  message (logged server-side, no stack traces).
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 3 — Backend CRUD (in progress)
-**Last updated by:** Agent session 2026-08-12 (Application CRUD)
-**Summary:** Application full CRUD is done — `Application` entity, repository,
-service, and `ApplicationController` at `/api/applications` (GET list, GET by id,
-POST, PUT, DELETE). All queries scoped by `AuthContext.getUserId`. Bean Validation
-on create/update DTOs; 404 via `ResponseStatusException` when not owned/found.
-Unit + controller tests pass (20 total).
+**Phase:** Phase 4 — Frontend Base (not started)
+**Last updated by:** Agent session 2026-08-13 (Centralized error handling)
+**Summary:** Phase 3 backend CRUD is complete. Added `GlobalExceptionHandler`
+and `ApiErrorResponse` for consistent JSON error bodies across all `/api/*`
+endpoints — validation failures include per-field errors; 404/401/500 handled
+without leaking stack traces. Unit + controller tests pass (53 total).
 
-Next actionable task: **Phase 3 — Interview model/service/repository/controller**.
+Next actionable task: **Phase 4 — Landing page ("Take control of your job search")**.
 
 ---
 
@@ -260,9 +281,7 @@ the task is finished.)*
 *(Bugs discovered but not yet fixed. Format: short description, where it
 lives, repro steps if known, suspected cause if known.)*
 
-- **GitHub remote not created** — `gh auth status` reports not logged in.
-  User must run `gh auth login`, then from repo root:
-  `gh repo create jobtrack --public --source=. --remote=origin`
+- *(no known issues)*
 
 ---
 
@@ -298,9 +317,9 @@ lives, repro steps if known, suspected cause if known.)*
 
 ### Phase 3 — Backend CRUD
 - [x] Application model/service/repository/controller (full CRUD)
-- [ ] Interview model/service/repository/controller
-- [ ] Contact model/service/repository/controller
-- [ ] Centralized error handling (`@ControllerAdvice`)
+- [x] Interview model/service/repository/controller
+- [x] Contact model/service/repository/controller
+- [x] Centralized error handling (`@ControllerAdvice`)
 
 ### Phase 4 — Frontend Base
 - [ ] Landing page ("Take control of your job search")
@@ -393,3 +412,19 @@ short — this is a log, not a diary.)*
   service, controller (`/api/applications`), create/update DTOs with validation,
   user-scoped queries via `findByIdAndUserId`. Service + controller unit tests;
   all 20 backend tests pass.
+- **2026-08-13 — Phase 3, task 2:** Interview CRUD — JPA entity, repository,
+  service, controller (`/api/interviews`). Ownership via parent application;
+  create/update DTOs with `@NotNull` on required fields; GET/{id} + DELETE
+  added beyond original API sketch. Service + controller unit tests; all 34
+  backend tests pass.
+- **2026-08-13 — Phase 3, task 3:** Contact CRUD — JPA entity, repository,
+  service, controller (`/api/contacts`). User-scoped via `findByIdAndUserId`;
+  create/update DTOs with `@NotBlank` name and optional `@Email`. Full CRUD
+  beyond original GET/POST sketch. Service + controller unit tests; all 47
+  backend tests pass.
+- **2026-08-13 — Phase 3, task 4:** Centralized error handling —
+  `GlobalExceptionHandler` (`@RestControllerAdvice`) + `ApiErrorResponse` DTO.
+  Handles validation (400 + field errors), `ResponseStatusException` (404 etc.),
+  malformed JSON, bad path params, missing auth (401), and unexpected errors
+  (500, generic message). `GlobalExceptionHandlerTest` with 6 cases; all 53
+  backend tests pass. Phase 3 complete.

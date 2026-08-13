@@ -1,6 +1,8 @@
 package com.jobtrack;
 
 import com.jobtrack.repository.ApplicationRepository;
+import com.jobtrack.repository.ContactRepository;
+import com.jobtrack.repository.InterviewRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -16,6 +18,12 @@ class JobtrackBackendApplicationTests {
 
 	@MockitoBean
 	private ApplicationRepository applicationRepository;
+
+	@MockitoBean
+	private InterviewRepository interviewRepository;
+
+	@MockitoBean
+	private ContactRepository contactRepository;
 
 	@Test
 	void contextLoads() {
