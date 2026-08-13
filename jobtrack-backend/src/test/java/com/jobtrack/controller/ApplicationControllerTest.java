@@ -2,6 +2,7 @@ package com.jobtrack.controller;
 
 import com.jobtrack.dto.ApplicationResponse;
 import com.jobtrack.dto.CreateApplicationRequest;
+import com.jobtrack.dto.PatchApplicationStatusRequest;
 import com.jobtrack.dto.UpdateApplicationRequest;
 import com.jobtrack.model.ApplicationStatus;
 import com.jobtrack.security.AuthContext;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -140,6 +142,36 @@ class ApplicationControllerTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.position").value("Staff Engineer"))
 				.andExpect(jsonPath("$.status").value("Interview"));
+	}
+
+	@Test
+	void patchStatusReturnsUpdatedApplication() throws Exception {
+		PatchApplicationStatusRequest request = new PatchApplicationStatusRequest();
+		request.setStatus(ApplicationStatus.Offer);
+
+		ApplicationResponse updated = new ApplicationResponse(
+				APP_ID, USER_ID, "Google", "Software Engineer", "Remote",
+				90_000, 120_000, ApplicationStatus.Offer, LocalDate.of(2026, 8, 12),
+				"https://careers.google.com/jobs/123",
+				Instant.parse("2026-08-12T10:00:00Z"), Instant.parse("2026-08-12T11:00:00Z"));
+
+		when(applicationService.updateStatus(USER_ID, APP_ID, ApplicationStatus.Offer)).thenReturn(updated);
+
+		mockMvc.perform(patch("/api/applications/{id}/status", APP_ID)
+				.requestAttr(AuthContext.USER_ID_ATTRIBUTE, USER_ID)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(jsonMapper.writeValueAsString(request)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("Offer"));
+	}
+
+	@Test
+	void patchStatusRejectsMissingStatus() throws Exception {
+		mockMvc.perform(patch("/api/applications/{id}/status", APP_ID)
+				.requestAttr(AuthContext.USER_ID_ATTRIBUTE, USER_ID)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{}"))
+				.andExpect(status().isBadRequest());
 	}
 
 	@Test

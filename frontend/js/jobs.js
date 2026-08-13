@@ -230,10 +230,9 @@
   }
 
   /**
-   * Moves a card between columns in the UI. Status persistence via API is
-   * Phase 6 task 3 (PATCH application status on drop).
+   * Optimistically move a card, then PATCH status. Reverts UI on API failure.
    */
-  function moveApplicationStatusLocally(applicationId, newStatus) {
+  async function moveApplicationStatus(applicationId, newStatus) {
     if (KANBAN_STATUSES.indexOf(newStatus) === -1) {
       return;
     }
@@ -243,9 +242,44 @@
       return;
     }
 
+    const previousStatus = application.status;
     application.status = newStatus;
+    if (application.updatedAt != null) {
+      application.updatedAt = new Date().toISOString();
+    }
     renderList(cachedApplications);
     renderKanban(cachedApplications);
+    hideJobsError();
+
+    try {
+      const updated = await JobTrackApi.fetchJson(
+        '/api/applications/' + encodeURIComponent(applicationId) + '/status',
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+      Object.assign(application, updated);
+      renderList(cachedApplications);
+      renderKanban(cachedApplications);
+    } catch (err) {
+      application.status = previousStatus;
+      renderList(cachedApplications);
+      renderKanban(cachedApplications);
+      showJobsError(err.message || 'Could not update application status.');
+    }
+  }
+
+  function hideJobsError() {
+    const errorEl = document.getElementById('jobs-error');
+    errorEl.hidden = true;
+    errorEl.textContent = '';
+  }
+
+  function showJobsError(message) {
+    const errorEl = document.getElementById('jobs-error');
+    errorEl.textContent = message;
+    errorEl.hidden = false;
   }
 
   function wireKanbanDragAndDrop() {
@@ -330,7 +364,7 @@
         return;
       }
 
-      moveApplicationStatusLocally(applicationId, newStatus);
+      moveApplicationStatus(applicationId, newStatus);
     });
 
     board.addEventListener(

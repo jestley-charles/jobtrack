@@ -4,6 +4,7 @@ import com.jobtrack.dto.ApplicationResponse;
 import com.jobtrack.dto.CreateApplicationRequest;
 import com.jobtrack.dto.UpdateApplicationRequest;
 import com.jobtrack.model.Application;
+import com.jobtrack.model.ApplicationStatus;
 import com.jobtrack.repository.ApplicationRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,13 @@ public class ApplicationService {
 		applyRequestFields(application, request.getCompany(), request.getPosition(), request.getLocation(),
 				request.getSalaryMin(), request.getSalaryMax(), request.getStatus(), request.getDateApplied(),
 				request.getJobUrl());
+		return ApplicationResponse.from(applicationRepository.save(application));
+	}
+
+	@Transactional
+	public ApplicationResponse updateStatus(UUID userId, UUID applicationId, ApplicationStatus status) {
+		Application application = findOwnedApplication(userId, applicationId);
+		application.setStatus(status);
 		return ApplicationResponse.from(applicationRepository.save(application));
 	}
 

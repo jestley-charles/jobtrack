@@ -2,6 +2,7 @@ package com.jobtrack.controller;
 
 import com.jobtrack.dto.ApplicationResponse;
 import com.jobtrack.dto.CreateApplicationRequest;
+import com.jobtrack.dto.PatchApplicationStatusRequest;
 import com.jobtrack.dto.UpdateApplicationRequest;
 import com.jobtrack.security.AuthContext;
 import com.jobtrack.service.ApplicationService;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -59,6 +61,15 @@ public class ApplicationController {
 			HttpServletRequest request) {
 		UUID userId = AuthContext.getUserId(request);
 		return applicationService.update(userId, id, body);
+	}
+
+	@PatchMapping("/{id}/status")
+	public ApplicationResponse updateStatus(
+			@PathVariable UUID id,
+			@Valid @RequestBody PatchApplicationStatusRequest body,
+			HttpServletRequest request) {
+		UUID userId = AuthContext.getUserId(request);
+		return applicationService.updateStatus(userId, id, body.getStatus());
 	}
 
 	@DeleteMapping("/{id}")

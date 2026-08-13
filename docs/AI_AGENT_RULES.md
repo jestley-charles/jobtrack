@@ -134,6 +134,7 @@ GET    /api/applications
 GET    /api/applications/{id}
 POST   /api/applications
 PUT    /api/applications/{id}
+PATCH  /api/applications/{id}/status
 DELETE /api/applications/{id}
 
 GET    /api/interviews
@@ -277,18 +278,21 @@ already specified above. Newest at the bottom.)*
   (not a separate nav page), preference stored in `localStorage` key
   `jobtrack.jobsView`. Columns use `data-status` / `data-application-id` so
   Phase 6 drag-and-drop can attach later without restructuring markup.
+- **2026-08-14:** Status-only updates use `PATCH /api/applications/{id}/status`
+  with body `{ "status": "<ApplicationStatus>" }` (`PatchApplicationStatusRequest`).
+  Kanban drop calls this endpoint; full-field edits still use PUT.
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 6 — Kanban Board (in progress)
-**Last updated by:** Agent session 2026-08-14 (Kanban drag-and-drop)
-**Summary:** Board cards are draggable between the five status columns. Drop
-updates local cache + list/board UI (counts, card placement). Status is not
-persisted to the API yet — refresh restores server status.
+**Phase:** Phase 6 — Kanban Board (complete)
+**Last updated by:** Agent session 2026-08-14 (PATCH status on drop)
+**Summary:** Dropping a Kanban card now PATCHes `/api/applications/{id}/status`.
+  Optimistic UI update with rollback + error message if the API call fails.
+  Phase 6 complete.
 
-Next actionable task: **Phase 6 — PATCH application status on drop**.
+Next actionable task: **Phase 7 — Upcoming interviews widget on dashboard**.
 
 ---
 
@@ -367,7 +371,7 @@ API list calls may still return 500.
 ### Phase 6 — Kanban Board
 - [x] Kanban columns (Wishlist, Applied, Interview, Offer, Rejected)
 - [x] Drag-and-drop between columns
-- [ ] PATCH application status on drop
+- [x] PATCH application status on drop
 
 ### Phase 7 — Interviews
 - [ ] Upcoming interviews widget on dashboard
@@ -521,3 +525,6 @@ short — this is a log, not a diary.)*
 - **2026-08-14 — Phase 6, task 2:** Kanban drag-and-drop — HTML5 DnD on board
   cards; drop moves status locally and re-renders list + board. Click after drag
   suppressed so detail links don't fire. No API call yet (next: PATCH on drop).
+- **2026-08-14 — Phase 6, task 3:** PATCH status on drop —
+  `PATCH /api/applications/{id}/status` + service/DTO/tests; board drop
+  optimistic update with rollback on failure. Phase 6 complete.

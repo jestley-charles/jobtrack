@@ -127,6 +127,27 @@ class ApplicationServiceTest {
 	}
 
 	@Test
+	void updateStatusChangesOnlyStatus() {
+		when(applicationRepository.findByIdAndUserId(APP_ID, USER_ID)).thenReturn(Optional.of(sampleApplication));
+		when(applicationRepository.save(sampleApplication)).thenReturn(sampleApplication);
+
+		ApplicationResponse response = applicationService.updateStatus(USER_ID, APP_ID, ApplicationStatus.Offer);
+
+		assertEquals(ApplicationStatus.Offer, response.status());
+		assertEquals(ApplicationStatus.Offer, sampleApplication.getStatus());
+		assertEquals("Software Engineer", sampleApplication.getPosition());
+	}
+
+	@Test
+	void updateStatusThrowsWhenNotFound() {
+		when(applicationRepository.findByIdAndUserId(APP_ID, USER_ID)).thenReturn(Optional.empty());
+
+		assertThrows(ResponseStatusException.class,
+				() -> applicationService.updateStatus(USER_ID, APP_ID, ApplicationStatus.Rejected));
+		verify(applicationRepository, never()).save(any());
+	}
+
+	@Test
 	void deleteRemovesOwnedApplication() {
 		when(applicationRepository.findByIdAndUserId(APP_ID, USER_ID)).thenReturn(Optional.of(sampleApplication));
 
