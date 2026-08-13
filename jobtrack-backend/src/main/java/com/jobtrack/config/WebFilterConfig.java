@@ -21,7 +21,7 @@ public class WebFilterConfig {
 		FilterRegistrationBean<JwtAuthenticationFilter> registration = new FilterRegistrationBean<>();
 		registration.setFilter(filter);
 		registration.addUrlPatterns("/api/*");
-		registration.setOrder(1);
+		registration.setOrder(2);
 		return registration;
 	}
 
