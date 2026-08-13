@@ -149,3 +149,5 @@ You can also test the raw connection in the Supabase dashboard under **SQL Edito
       `contacts`, `notes`
 
 When all boxes are checked, Phase 0 task **Create Supabase project** is complete. The next agent can proceed to **Phase 1 — SQL migrations**.
+
+For the live demo account (`demo@jobtrack.com`), see [`docs/DEMO_SEED.md`](DEMO_SEED.md).

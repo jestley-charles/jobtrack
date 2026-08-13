@@ -298,18 +298,23 @@ already specified above. Newest at the bottom.)*
 - **2026-08-14:** Cache-first UI: pages call `JobTrackDataCache.peek()` sync and
   paint immediately on nav (no loading flash). Loading states only for cold
   start / Refresh / mutations. Matches common stale-while-revalidate UX.
+- **2026-08-14:** Demo seed is a manual SQL script
+  (`jobtrack-backend/scripts/seed_demo_data.sql`), not a Flyway migration —
+  Auth user must exist first; script is idempotent (wipe + reinsert for
+  `demo@jobtrack.com`). Docs: `docs/DEMO_SEED.md`.
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 7 — Interviews (complete)
-**Last updated by:** Agent session 2026-08-14 (cache-first paint)
-**Summary:** Phase 7 complete. List data cached per session; tab switches paint
-  from `peek()` immediately (no loading flash). Loading only on first load /
-  Refresh.
+**Phase:** Phase 9 — Demo Data (complete)
+**Last updated by:** Agent session 2026-08-14 (demo seed)
+**Summary:** Phase 9 complete. Seed SQL + setup docs for `demo@jobtrack.com`
+  with 24 applications, 8 interviews, 8 contacts, 5 notes. User must create
+  the Auth account and run the script in Supabase SQL Editor (see
+  `docs/DEMO_SEED.md`).
 
-Next actionable task: **Phase 8 — Deploy backend to Render, confirm env vars set**.
+Next actionable task: **Phase 10 — Responsive layout pass (mobile/tablet)**.
 
 ---
 
@@ -401,8 +406,10 @@ API list calls may still return 500.
 - [x] Confirm CORS config allows the Firebase domain
 
 ### Phase 9 — Demo Data
-- [ ] Seed script or SQL for demo account (`demo@jobtrack.com`)
-- [ ] Populate realistic sample applications/interviews/contacts
+- [x] Seed script or SQL for demo account (`demo@jobtrack.com`)
+- [x] Populate realistic sample applications/interviews/contacts
+      (**User:** create Auth user + run `seed_demo_data.sql` — see
+      `docs/DEMO_SEED.md`)
 
 ### Phase 10 — Polish
 - [ ] Responsive layout pass (mobile/tablet)
@@ -562,3 +569,8 @@ short — this is a log, not a diary.)*
 - **2026-08-14 — fix:** Removed loading flash on tab switch — sync
   `peek()` + paint-from-cache before auth; loading UI only for cold start /
   Refresh.
+- **2026-08-14 — Phase 9:** Demo seed — `docs/DEMO_SEED.md` +
+  `jobtrack-backend/scripts/seed_demo_data.sql` (idempotent wipe/reinsert for
+  `demo@jobtrack.com`: 24 apps across all statuses, 8 interviews with upcoming
+  dates, 8 contacts, 5 notes). Auth user creation is a user/dashboard step.
+  Phase 9 complete.
