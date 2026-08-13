@@ -2,6 +2,7 @@
   "name": "jobtrack-frontend",
   "private": true,
   "scripts": {
-    "config": "powershell -ExecutionPolicy Bypass -File scripts/generate-config.ps1"
+    "config": "powershell -ExecutionPolicy Bypass -File scripts/generate-config.ps1",
+    "deploy": "npm run config && firebase deploy --only hosting"
   }
 }

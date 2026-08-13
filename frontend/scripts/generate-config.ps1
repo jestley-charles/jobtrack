@@ -26,6 +26,14 @@ foreach ($key in $required) {
 
 $apiUrl = if ($vars.ContainsKey('API_URL') -and $vars['API_URL']) { $vars['API_URL'] } else { 'http://localhost:8080' }
 
+if ($apiUrl -match 'localhost|127\.0\.0\.1') {
+    Write-Warning @"
+API_URL is $apiUrl
+  - Firebase emulator / deploy: use your Render backend URL unless Spring Boot is running locally on :8080
+  - After editing frontend/.env, redeploy: npm run deploy  (or npm run config && firebase deploy --only hosting)
+"@
+}
+
 $content = @"
 // Auto-generated from .env - do not commit. Re-run: npm run config
 window.JOBTRACK_CONFIG = {

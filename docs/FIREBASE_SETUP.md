@@ -102,6 +102,29 @@ npm exec --yes firebase-tools -- emulators:start --only hosting
 
 This serves the static frontend locally through Firebase Hosting.
 
+### Backend API URL (`API_URL`)
+
+The frontend calls the Spring Boot API using `apiUrl` in `js/config.js` (generated
+from `frontend/.env`). **Do not leave `API_URL` as `localhost` for deploy or
+emulator testing unless the backend is running on your machine.**
+
+| How you test | Set `API_URL` in `frontend/.env` to |
+|---|---|
+| Local backend + emulator | `http://localhost:8080` (run `mvn spring-boot:run` in `jobtrack-backend/`) |
+| Firebase emulator or deploy | Your Render service URL, e.g. `https://jobtrack-backend.onrender.com` |
+
+After changing `.env`:
+
+```powershell
+npm run config
+```
+
+Before deploy, regenerate config automatically:
+
+```powershell
+npm run deploy
+```
+
 ---
 
 ## 6. Deploy later
@@ -110,6 +133,13 @@ When the frontend is ready for deployment:
 
 ```powershell
 cd frontend
+npm run deploy
+```
+
+Or manually:
+
+```powershell
+npm run config
 npm exec --yes firebase-tools -- deploy --only hosting
 ```
 

@@ -89,7 +89,13 @@ SUPABASE_JWT_SECRET=your-jwt-secret-here
 ```env
 SUPABASE_URL=https://abcdefghijklmnop.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+API_URL=http://localhost:8080
 ```
+
+`API_URL` is the Spring Boot base URL (no trailing slash). Use `http://localhost:8080`
+only when running the backend locally. For Firebase Hosting deploy or the Hosting
+emulator without a local backend, set this to your Render service URL, then run
+`npm run config` from `frontend/`.
 
 ---
 

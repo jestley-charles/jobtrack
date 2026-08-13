@@ -2,11 +2,41 @@
  * Authenticated fetch helper for the JobTrack Spring Boot API.
  */
 (function () {
-  function getApiUrl() {
-    if (!window.JOBTRACK_CONFIG || !window.JOBTRACK_CONFIG.apiUrl) {
-      return 'http://localhost:8080';
+  function isLocalHost(hostname) {
+    return hostname === 'localhost' || hostname === '127.0.0.1';
+  }
+
+  function isLocalApiUrl(apiUrl) {
+    try {
+      const parsed = new URL(apiUrl);
+      return isLocalHost(parsed.hostname);
+    } catch (err) {
+      return false;
     }
-    return window.JOBTRACK_CONFIG.apiUrl.replace(/\/$/, '');
+  }
+
+  function getApiUrl() {
+    let apiUrl = 'http://localhost:8080';
+    if (window.JOBTRACK_CONFIG && window.JOBTRACK_CONFIG.apiUrl) {
+      apiUrl = window.JOBTRACK_CONFIG.apiUrl.replace(/\/$/, '');
+    }
+
+    if (!isLocalHost(window.location.hostname) && isLocalApiUrl(apiUrl)) {
+      throw new Error(
+        'API is set to ' +
+          apiUrl +
+          ' but this site is not running locally. Set API_URL in frontend/.env to your Render backend URL, run npm run config, then redeploy.'
+      );
+    }
+
+    return apiUrl;
+  }
+
+  function apiConnectionHint(apiUrl) {
+    if (isLocalApiUrl(apiUrl)) {
+      return ' Start the Spring Boot backend on port 8080, or set API_URL in frontend/.env to your Render backend URL and run npm run config.';
+    }
+    return ' Check that the backend is deployed and API_URL in frontend/.env is correct.';
   }
 
   async function apiFetch(path, options) {
@@ -15,12 +45,18 @@
       throw new Error('Not authenticated');
     }
 
+    const apiUrl = getApiUrl();
     const headers = Object.assign(
-      { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
       options && options.headers ? options.headers : {}
     );
 
-    const response = await fetch(`${getApiUrl()}${path}`, Object.assign({}, options, { headers }));
+    let response;
+    try {
+      response = await fetch(apiUrl + path, Object.assign({}, options, { headers }));
+    } catch (err) {
+      throw new Error('Could not reach the API at API_URL.' + apiConnectionHint(apiUrl));
+    }
 
     if (response.status === 401) {
       window.location.href = 'login.html';
