@@ -42,7 +42,13 @@
             <p class="app-page-lead">Track companies and positions you're pursuing.</p>
             <p class="jobs-count" id="jobs-count" hidden></p>
           </div>
-          <button type="button" class="btn btn-primary" id="add-application-btn">Add application</button>
+          <div class="jobs-header-actions">
+            <div class="jobs-view-toggle" role="group" aria-label="Jobs view">
+              <button type="button" class="jobs-view-btn jobs-view-btn--active" id="jobs-view-list" data-view="list" aria-pressed="true">List</button>
+              <button type="button" class="jobs-view-btn" id="jobs-view-board" data-view="board" aria-pressed="false">Board</button>
+            </div>
+            <button type="button" class="btn btn-primary" id="add-application-btn">Add application</button>
+          </div>
         </header>
 
         <div class="jobs-list" id="jobs-list">
@@ -70,6 +76,44 @@
               </thead>
               <tbody id="applications-tbody"></tbody>
             </table>
+          </div>
+
+          <div class="kanban-board" id="kanban-board" hidden>
+            <section class="kanban-column" data-status="Wishlist" aria-labelledby="kanban-heading-wishlist">
+              <header class="kanban-column-header">
+                <h2 class="kanban-column-title" id="kanban-heading-wishlist">Wishlist</h2>
+                <span class="kanban-column-count" data-kanban-count="Wishlist">0</span>
+              </header>
+              <div class="kanban-column-cards" data-kanban-cards="Wishlist"></div>
+            </section>
+            <section class="kanban-column" data-status="Applied" aria-labelledby="kanban-heading-applied">
+              <header class="kanban-column-header">
+                <h2 class="kanban-column-title" id="kanban-heading-applied">Applied</h2>
+                <span class="kanban-column-count" data-kanban-count="Applied">0</span>
+              </header>
+              <div class="kanban-column-cards" data-kanban-cards="Applied"></div>
+            </section>
+            <section class="kanban-column" data-status="Interview" aria-labelledby="kanban-heading-interview">
+              <header class="kanban-column-header">
+                <h2 class="kanban-column-title" id="kanban-heading-interview">Interview</h2>
+                <span class="kanban-column-count" data-kanban-count="Interview">0</span>
+              </header>
+              <div class="kanban-column-cards" data-kanban-cards="Interview"></div>
+            </section>
+            <section class="kanban-column" data-status="Offer" aria-labelledby="kanban-heading-offer">
+              <header class="kanban-column-header">
+                <h2 class="kanban-column-title" id="kanban-heading-offer">Offer</h2>
+                <span class="kanban-column-count" data-kanban-count="Offer">0</span>
+              </header>
+              <div class="kanban-column-cards" data-kanban-cards="Offer"></div>
+            </section>
+            <section class="kanban-column kanban-column--rejected" data-status="Rejected" aria-labelledby="kanban-heading-rejected">
+              <header class="kanban-column-header">
+                <h2 class="kanban-column-title" id="kanban-heading-rejected">Rejected</h2>
+                <span class="kanban-column-count" data-kanban-count="Rejected">0</span>
+              </header>
+              <div class="kanban-column-cards" data-kanban-cards="Rejected"></div>
+            </section>
           </div>
         </div>
       </main>

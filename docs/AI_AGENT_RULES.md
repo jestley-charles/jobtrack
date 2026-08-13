@@ -273,21 +273,22 @@ already specified above. Newest at the bottom.)*
   Render and many dev networks are IPv4-only — use Supavisor session pooler
   (`aws-0-[region].pooler.supabase.com:5432`, user `postgres.[project-ref]`) for
   backend JDBC. Direct connection is fine only on IPv6-capable local networks.
+- **2026-08-14:** Kanban board lives on `jobs.html` as a List/Board view toggle
+  (not a separate nav page), preference stored in `localStorage` key
+  `jobtrack.jobsView`. Columns use `data-status` / `data-application-id` so
+  Phase 6 drag-and-drop can attach later without restructuring markup.
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 5 — Frontend Features (complete)
-**Last updated by:** Agent session 2026-08-13 (dashboard/jobs empty-state fix — Supabase pooler)
-**Summary:** Fixed dashboard/jobs showing load errors instead of empty states when a user
-has no data. Root cause: backend on Render could not reach Supabase over the direct
-IPv6-only DB host; list endpoints returned 500. Documented and switched to Supavisor
-session pooler (IPv4). Also fixed `supabase.jwt-secret` ConfigurationProperties binding
-and added `JobTrackApi.fetchJsonList` for list endpoints.
+**Phase:** Phase 6 — Kanban Board (in progress)
+**Last updated by:** Agent session 2026-08-14 (Kanban drag-and-drop)
+**Summary:** Board cards are draggable between the five status columns. Drop
+updates local cache + list/board UI (counts, card placement). Status is not
+persisted to the API yet — refresh restores server status.
 
-Next actionable task: **Phase 6 — Kanban columns**. **User action:** update Render env
-vars to pooler URL + `postgres.[project-ref]` username, then redeploy backend.
+Next actionable task: **Phase 6 — PATCH application status on drop**.
 
 ---
 
@@ -308,7 +309,7 @@ lives, repro steps if known, suspected cause if known.)*
 
 - *(no known issues)*
 
-**User action after this fix:** In the Render dashboard, set backend env vars to the
+**User action after pooler fix:** In the Render dashboard, set backend env vars to the
 Supavisor session pooler (see `docs/RENDER_SETUP.md`) and redeploy. Until then, deployed
 API list calls may still return 500.
 
@@ -364,8 +365,8 @@ API list calls may still return 500.
 - [x] Recent activity feed
 
 ### Phase 6 — Kanban Board
-- [ ] Kanban columns (Wishlist, Applied, Interview, Offer, Rejected)
-- [ ] Drag-and-drop between columns
+- [x] Kanban columns (Wishlist, Applied, Interview, Offer, Rejected)
+- [x] Drag-and-drop between columns
 - [ ] PATCH application status on drop
 
 ### Phase 7 — Interviews
@@ -513,3 +514,10 @@ short — this is a log, not a diary.)*
   `/api/interviews` returned 500. Fix: use Supavisor session pooler JDBC URL + user
   `postgres.[project-ref]`. Flattened `SupabaseJwtProperties` binding for
   `supabase.jwt-secret`. Frontend: `JobTrackApi.fetchJsonList` for list endpoints.
+- **2026-08-14 — Phase 6, task 1:** Kanban columns on Jobs — List/Board toggle,
+  five status columns with cards (company/position/location) linking to detail.
+  Preference in `localStorage`; column/`data-application-id` hooks for upcoming
+  drag-and-drop. No DnD or status PATCH yet.
+- **2026-08-14 — Phase 6, task 2:** Kanban drag-and-drop — HTML5 DnD on board
+  cards; drop moves status locally and re-renders list + board. Click after drag
+  suppressed so detail links don't fire. No API call yet (next: PATCH on drop).

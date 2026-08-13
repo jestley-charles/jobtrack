@@ -7,7 +7,11 @@
     Rejected: 'status-badge--rejected',
   };
 
+  const KANBAN_STATUSES = ['Wishlist', 'Applied', 'Interview', 'Offer', 'Rejected'];
+  const VIEW_STORAGE_KEY = 'jobtrack.jobsView';
+
   let cachedApplications = [];
+  let currentView = 'list';
 
   function formatDate(isoDate) {
     if (!isoDate) {
@@ -56,6 +60,53 @@
     badge.className = 'status-badge ' + (STATUS_BADGE_CLASS[status] || '');
     badge.textContent = status || 'Unknown';
     return badge;
+  }
+
+  function readStoredView() {
+    try {
+      const stored = window.localStorage.getItem(VIEW_STORAGE_KEY);
+      if (stored === 'board' || stored === 'list') {
+        return stored;
+      }
+    } catch (err) {
+      // ignore storage errors
+    }
+    return 'list';
+  }
+
+  function persistView(view) {
+    try {
+      window.localStorage.setItem(VIEW_STORAGE_KEY, view);
+    } catch (err) {
+      // ignore storage errors
+    }
+  }
+
+  function updateViewToggleUi() {
+    document.querySelectorAll('.jobs-view-btn').forEach(function (btn) {
+      const isActive = btn.dataset.view === currentView;
+      btn.classList.toggle('jobs-view-btn--active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  }
+
+  function showActiveView() {
+    const listEl = document.getElementById('jobs-content');
+    const boardEl = document.getElementById('kanban-board');
+    const hasData = cachedApplications.length > 0;
+
+    listEl.hidden = !(hasData && currentView === 'list');
+    boardEl.hidden = !(hasData && currentView === 'board');
+  }
+
+  function setView(view) {
+    if (view !== 'list' && view !== 'board') {
+      return;
+    }
+    currentView = view;
+    persistView(view);
+    updateViewToggleUi();
+    showActiveView();
   }
 
   function renderApplicationRow(application) {
@@ -125,33 +176,235 @@
     return row;
   }
 
-  function renderApplications(applications) {
+  function renderList(applications) {
     const tbody = document.getElementById('applications-tbody');
-    const countEl = document.getElementById('jobs-count');
-    const sorted = sortApplications(applications);
-
-    cachedApplications = sorted;
     tbody.replaceChildren();
-    sorted.forEach(function (application) {
+    applications.forEach(function (application) {
       tbody.appendChild(renderApplicationRow(application));
     });
+  }
 
-    const label = sorted.length === 1 ? 'application' : 'applications';
-    countEl.textContent = sorted.length + ' ' + label;
+  function createKanbanCard(application) {
+    const card = document.createElement('article');
+    card.className = 'kanban-card';
+    card.dataset.applicationId = application.id;
+    card.draggable = true;
+
+    const link = document.createElement('a');
+    link.className = 'kanban-card-link';
+    link.href = 'application.html?id=' + encodeURIComponent(application.id);
+    link.draggable = false;
+
+    const company = document.createElement('h3');
+    company.className = 'kanban-card-company';
+    company.textContent = application.company;
+
+    const position = document.createElement('p');
+    position.className = 'kanban-card-position';
+    position.textContent = application.position;
+
+    link.appendChild(company);
+    link.appendChild(position);
+
+    if (application.location) {
+      const location = document.createElement('p');
+      location.className = 'kanban-card-meta';
+      location.textContent = application.location;
+      link.appendChild(location);
+    }
+
+    card.appendChild(link);
+    return card;
+  }
+
+  function clearColumnDragOver() {
+    document.querySelectorAll('.kanban-column--drag-over').forEach(function (column) {
+      column.classList.remove('kanban-column--drag-over');
+    });
+  }
+
+  function findApplication(applicationId) {
+    return cachedApplications.find(function (application) {
+      return application.id === applicationId;
+    }) || null;
+  }
+
+  /**
+   * Moves a card between columns in the UI. Status persistence via API is
+   * Phase 6 task 3 (PATCH application status on drop).
+   */
+  function moveApplicationStatusLocally(applicationId, newStatus) {
+    if (KANBAN_STATUSES.indexOf(newStatus) === -1) {
+      return;
+    }
+
+    const application = findApplication(applicationId);
+    if (!application || application.status === newStatus) {
+      return;
+    }
+
+    application.status = newStatus;
+    renderList(cachedApplications);
+    renderKanban(cachedApplications);
+  }
+
+  function wireKanbanDragAndDrop() {
+    const board = document.getElementById('kanban-board');
+    let draggedId = null;
+    let dragDidMove = false;
+    let suppressClick = false;
+
+    board.addEventListener('dragstart', function (event) {
+      const card = event.target.closest('.kanban-card');
+      if (!card || !board.contains(card)) {
+        return;
+      }
+
+      draggedId = card.dataset.applicationId;
+      dragDidMove = false;
+      card.classList.add('kanban-card--dragging');
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', draggedId);
+    });
+
+    board.addEventListener('drag', function () {
+      if (draggedId) {
+        dragDidMove = true;
+      }
+    });
+
+    board.addEventListener('dragend', function (event) {
+      const card = event.target.closest('.kanban-card');
+      if (card) {
+        card.classList.remove('kanban-card--dragging');
+      }
+      clearColumnDragOver();
+      if (dragDidMove) {
+        suppressClick = true;
+      }
+      draggedId = null;
+      dragDidMove = false;
+    });
+
+    board.addEventListener('dragover', function (event) {
+      const column = event.target.closest('.kanban-column');
+      if (!column || !board.contains(column) || !draggedId) {
+        return;
+      }
+
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+
+      if (!column.classList.contains('kanban-column--drag-over')) {
+        clearColumnDragOver();
+        column.classList.add('kanban-column--drag-over');
+      }
+    });
+
+    board.addEventListener('dragleave', function (event) {
+      const column = event.target.closest('.kanban-column');
+      if (!column || !board.contains(column)) {
+        return;
+      }
+
+      const related = event.relatedTarget;
+      if (related && column.contains(related)) {
+        return;
+      }
+      column.classList.remove('kanban-column--drag-over');
+    });
+
+    board.addEventListener('drop', function (event) {
+      const column = event.target.closest('.kanban-column');
+      if (!column || !board.contains(column)) {
+        return;
+      }
+
+      event.preventDefault();
+      clearColumnDragOver();
+
+      const applicationId =
+        event.dataTransfer.getData('text/plain') || draggedId;
+      const newStatus = column.dataset.status;
+      if (!applicationId || !newStatus) {
+        return;
+      }
+
+      moveApplicationStatusLocally(applicationId, newStatus);
+    });
+
+    board.addEventListener(
+      'click',
+      function (event) {
+        if (!suppressClick) {
+          return;
+        }
+        suppressClick = false;
+        if (event.target.closest('.kanban-card-link')) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      },
+      true
+    );
+  }
+
+  function renderKanban(applications) {
+    const byStatus = {};
+    KANBAN_STATUSES.forEach(function (status) {
+      byStatus[status] = [];
+    });
+
+    applications.forEach(function (application) {
+      const status = application.status;
+      if (byStatus[status]) {
+        byStatus[status].push(application);
+      }
+    });
+
+    KANBAN_STATUSES.forEach(function (status) {
+      const cardsEl = document.querySelector('[data-kanban-cards="' + status + '"]');
+      const countEl = document.querySelector('[data-kanban-count="' + status + '"]');
+      const items = byStatus[status];
+
+      cardsEl.replaceChildren();
+      items.forEach(function (application) {
+        cardsEl.appendChild(createKanbanCard(application));
+      });
+
+      countEl.textContent = String(items.length);
+    });
+  }
+
+  function updateCountLabel(count) {
+    const countEl = document.getElementById('jobs-count');
+    const label = count === 1 ? 'application' : 'applications';
+    countEl.textContent = count + ' ' + label;
     countEl.hidden = false;
+  }
+
+  function renderApplications(applications) {
+    const sorted = sortApplications(applications);
+    cachedApplications = sorted;
+    updateCountLabel(sorted.length);
+    renderList(sorted);
+    renderKanban(sorted);
+    showActiveView();
   }
 
   async function loadApplications() {
     const loadingEl = document.getElementById('jobs-loading');
     const errorEl = document.getElementById('jobs-error');
     const emptyEl = document.getElementById('jobs-empty');
-    const contentEl = document.getElementById('jobs-content');
+    const listEl = document.getElementById('jobs-content');
+    const boardEl = document.getElementById('kanban-board');
     const countEl = document.getElementById('jobs-count');
 
     loadingEl.hidden = false;
     errorEl.hidden = true;
     emptyEl.hidden = true;
-    contentEl.hidden = true;
+    listEl.hidden = true;
+    boardEl.hidden = true;
     countEl.hidden = true;
     errorEl.textContent = '';
 
@@ -167,7 +420,6 @@
       }
 
       renderApplications(applications);
-      contentEl.hidden = false;
     } catch (err) {
       loadingEl.hidden = true;
       errorEl.textContent = err.message || 'Something went wrong loading applications.';
@@ -185,13 +437,25 @@
     });
   }
 
+  function wireViewToggle() {
+    document.querySelectorAll('.jobs-view-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setView(btn.dataset.view);
+      });
+    });
+  }
+
   JobTrackAppShell.init({ page: 'jobs' }).then(function (session) {
     if (!session) {
       return;
     }
 
+    currentView = readStoredView();
+    updateViewToggleUi();
     JobTrackApplicationForm.init({ onSaved: loadApplications });
     wireAddButtons();
+    wireViewToggle();
+    wireKanbanDragAndDrop();
     loadApplications();
   });
 })();
