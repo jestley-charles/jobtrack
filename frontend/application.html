@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Manage your job applications in JobTrack.">
-  <title>Jobs — JobTrack</title>
+  <meta name="description" content="View application details in JobTrack.">
+  <title>Application — JobTrack</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="app-page">
@@ -36,40 +36,37 @@
       </nav>
 
       <main class="app-main">
-        <header class="app-page-header app-page-header--split">
-          <div>
-            <h1>Jobs</h1>
-            <p class="app-page-lead">Track companies and positions you're pursuing.</p>
-            <p class="jobs-count" id="jobs-count" hidden></p>
-          </div>
-          <button type="button" class="btn btn-primary" id="add-application-btn">Add application</button>
-        </header>
+        <p class="application-detail-back">
+          <a href="jobs.html" class="application-detail-back-link">← Back to jobs</a>
+        </p>
 
-        <div class="jobs-list" id="jobs-list">
-          <p class="dashboard-message" id="jobs-loading">Loading applications…</p>
-          <p class="dashboard-message dashboard-message--error" id="jobs-error" hidden></p>
+        <p class="dashboard-message" id="application-loading">Loading application…</p>
+        <p class="dashboard-message dashboard-message--error" id="application-error" hidden></p>
 
-          <div class="jobs-empty" id="jobs-empty" hidden>
-            <p class="jobs-empty-title">No applications yet</p>
-            <p class="jobs-empty-hint">Add your first application to start tracking your job search.</p>
-            <button type="button" class="btn btn-primary" id="add-application-empty-btn">Add application</button>
-          </div>
+        <div id="application-content" hidden>
+          <header class="app-page-header app-page-header--split application-detail-header">
+            <div>
+              <h1 id="application-title">Application</h1>
+              <p class="application-detail-subtitle" id="application-subtitle"></p>
+            </div>
+            <div class="application-detail-actions">
+              <button type="button" class="btn btn-secondary" id="edit-application-btn">Edit</button>
+              <button type="button" class="btn btn-danger" id="delete-application-btn">Delete</button>
+            </div>
+          </header>
 
-          <div class="application-list-wrap" id="jobs-content" hidden>
-            <table class="application-table">
-              <thead>
-                <tr>
-                  <th scope="col">Company</th>
-                  <th scope="col">Position</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Location</th>
-                  <th scope="col">Date applied</th>
-                  <th scope="col">Salary</th>
-                  <th scope="col"><span class="visually-hidden">Actions</span></th>
-                </tr>
-              </thead>
-              <tbody id="applications-tbody"></tbody>
-            </table>
+          <div class="application-detail-grid">
+            <section class="application-detail-card" aria-labelledby="application-info-heading">
+              <h2 id="application-info-heading">Details</h2>
+              <dl class="detail-list" id="application-details"></dl>
+            </section>
+
+            <section class="application-detail-card" aria-labelledby="application-interviews-heading">
+              <h2 id="application-interviews-heading">Interviews</h2>
+              <p class="dashboard-message" id="interviews-loading" hidden>Loading interviews…</p>
+              <p class="application-detail-empty" id="interviews-empty" hidden>No interviews scheduled for this application yet.</p>
+              <ul class="interview-list" id="interview-list" hidden></ul>
+            </section>
           </div>
         </div>
       </main>
@@ -81,7 +78,7 @@
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="application-modal-title">
       <form id="application-form" class="application-form" novalidate>
         <header class="modal-header">
-          <h2 id="application-modal-title">Add application</h2>
+          <h2 id="application-modal-title">Edit application</h2>
           <button type="button" class="modal-close" data-modal-close aria-label="Close">&times;</button>
         </header>
 
@@ -131,7 +128,7 @@
 
         <footer class="modal-footer">
           <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
-          <button type="submit" class="btn btn-primary" id="application-form-submit">Add application</button>
+          <button type="submit" class="btn btn-primary" id="application-form-submit">Save changes</button>
         </footer>
       </form>
     </div>
@@ -144,6 +141,6 @@
   <script src="js/api.js"></script>
   <script src="js/app-shell.js"></script>
   <script src="js/application-form.js"></script>
-  <script src="js/jobs.js"></script>
+  <script src="js/application-detail.js"></script>
 </body>
 </html>

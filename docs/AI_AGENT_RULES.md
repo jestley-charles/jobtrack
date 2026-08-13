@@ -254,20 +254,29 @@ already specified above. Newest at the bottom.)*
   sidebar + main) with common behavior in `js/app-shell.js` (`JobTrackAppShell.init`
   sets active nav, user menu, logout). Nav pages: `dashboard.html`, `jobs.html`,
   `interviews.html`, `contacts.html`, `settings.html`.
+- **2026-08-13:** Application add/edit uses a modal on `jobs.html` with logic in
+  `js/application-form.js` (`JobTrackApplicationForm`). Shared form field styles
+  reuse `.form-field` from auth pages; modal is vanilla JS (no dialog element).
+- **2026-08-13:** Application detail page is `application.html?id=<uuid>` (query
+  param, no client-side router). Fetches `GET /api/applications/{id}` plus
+  interviews filtered client-side from `GET /api/interviews`. Edit reuses
+  `JobTrackApplicationForm`; delete via `DELETE /api/applications/{id}`.
+- **2026-08-13:** Dashboard recent activity feed is synthesized client-side from
+  existing `/api/applications` + `/api/interviews` payloads (no activity/audit
+  API). Events: added, applied, interview, offer, rejection — sorted by date,
+  capped at 15 items.
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 5 — Frontend Features (not started)
-**Last updated by:** Agent session 2026-08-13 (Dashboard shell)
-**Summary:** Authenticated app shell complete — header with user initials menu,
-sidebar nav (Dashboard, Jobs, Interviews, Contacts, Settings), shared
-`app-shell.js` for auth guard / active nav / logout. Placeholder pages for each
-section; dashboard content (stats, charts) is Phase 5.
+**Phase:** Phase 5 — Frontend Features (complete)
+**Last updated by:** Agent session 2026-08-13 (Recent activity feed)
+**Summary:** Dashboard includes a recent activity feed — client-side timeline from
+applications (added, applied, offer, rejection) and interviews, with links to
+application detail. Phase 5 frontend features are complete.
 
-Next actionable task: **Phase 5 — Dashboard stats** (Applications / Interviews /
-Offers counts + status bar chart).
+Next actionable task: **Phase 6 — Kanban columns**.
 
 ---
 
@@ -333,11 +342,11 @@ lives, repro steps if known, suspected cause if known.)*
       Contacts, Settings)
 
 ### Phase 5 — Frontend Features
-- [ ] Dashboard stats (Applications / Interviews / Offers counts + status bar chart)
-- [ ] Applications list view
-- [ ] Add/Edit application form + modal
-- [ ] Application detail view
-- [ ] Recent activity feed
+- [x] Dashboard stats (Applications / Interviews / Offers counts + status bar chart)
+- [x] Applications list view
+- [x] Add/Edit application form + modal
+- [x] Application detail view
+- [x] Recent activity feed
 
 ### Phase 6 — Kanban Board
 - [ ] Kanban columns (Wishlist, Applied, Interview, Offer, Rejected)
@@ -447,3 +456,26 @@ short — this is a log, not a diary.)*
   `js/app-shell.js` (auth guard, active nav, user initials dropdown, logout).
   Extended `css/styles.css` with app shell styles + mobile horizontal nav.
   Phase 4 complete.
+- **2026-08-13 — Phase 5, task 1:** Dashboard stats — `dashboard.js` fetches
+  `/api/applications` + `/api/interviews` in parallel via `JobTrackApi`.
+  Stat cards: total applications, interview record count, offer status count.
+  Bar chart: Applied / Interview / Offer / Rejected from application statuses.
+  Added dashboard stats CSS; loading + error UI on fetch failure.
+- **2026-08-13 — Phase 5, task 2:** Applications list view — `jobs.html` +
+  `jobs.js` fetch `/api/applications`, render sortable table (company,
+  position, status badge, location, date applied, salary). Responsive card
+  layout on mobile; empty/loading/error states. Status badge colors match
+  dashboard chart palette.
+- **2026-08-13 — Phase 5, task 3:** Add/Edit application modal — `application-form.js`
+  + modal markup in `jobs.html`. Create via POST, update via PUT; backend
+  validation errors surfaced in form. Edit button on each list row; add buttons
+  in header and empty state. Modal CSS + select/form-row styles.
+- **2026-08-13 — Phase 5, task 4:** Application detail view — `application.html`
+  + `application-detail.js`. Fetches single application + filters interviews by
+  `applicationId`. Detail grid (location, salary, dates, job URL link); interview
+  list with type/date/interviewer/result/notes. Edit via shared modal; delete with
+  confirm. Jobs list: company link + View button to detail page.
+- **2026-08-13 — Phase 5, task 5:** Recent activity feed — dashboard section
+  built from existing API data (no new endpoint). Timeline events for added,
+  applied, interviews, offers, rejections; company links to detail page; empty
+  state. Phase 5 complete.
