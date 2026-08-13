@@ -219,6 +219,37 @@
   }
 
   /**
+   * Sync read of sessionStorage into memory for instant paint on nav.
+   * Does not hit the network. Call before auth finishes.
+   * @returns {{applications: Array, interviews: Array}|null}
+   */
+  function peek() {
+    if (hasMemoryData()) {
+      return {
+        applications: getApplications(),
+        interviews: getInterviews(),
+      };
+    }
+    var stored = readStore();
+    if (
+      !stored ||
+      !Array.isArray(stored.applications) ||
+      !Array.isArray(stored.interviews)
+    ) {
+      return null;
+    }
+    memory = {
+      userId: stored.userId || null,
+      applications: cloneList(stored.applications),
+      interviews: cloneList(stored.interviews),
+    };
+    return {
+      applications: getApplications(),
+      interviews: getInterviews(),
+    };
+  }
+
+  /**
    * Return cached lists, or fetch once per session (per user).
    * @returns {Promise<{applications: Array, interviews: Array}>}
    */
@@ -233,6 +264,10 @@
         applications: getApplications(),
         interviews: getInterviews(),
       };
+    }
+
+    if (hasMemoryData() && memory.userId && memory.userId !== userId) {
+      invalidate();
     }
 
     var hydrated = hydrateFromStore(userId);
@@ -306,6 +341,7 @@
 
   window.JobTrackDataCache = {
     hasData: hasData,
+    peek: peek,
     ensureLoaded: ensureLoaded,
     refresh: refresh,
     refreshApplications: refreshApplications,

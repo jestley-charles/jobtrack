@@ -295,16 +295,19 @@ already specified above. Newest at the bottom.)*
   switches reuse the cache (`ensureLoaded`); **Refresh** buttons and
   create/edit/delete flows call `refresh` / in-place cache updates. Cache is
   cleared on logout. Not an SPA — still multi-page HTML; cache bridges reloads.
+- **2026-08-14:** Cache-first UI: pages call `JobTrackDataCache.peek()` sync and
+  paint immediately on nav (no loading flash). Loading states only for cold
+  start / Refresh / mutations. Matches common stale-while-revalidate UX.
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 7 — Interviews (complete)
-**Last updated by:** Agent session 2026-08-14 (data cache on tab switch)
-**Summary:** Phase 7 complete. Dashboard / Jobs / Interviews / application
-  detail no longer re-fetch list APIs on every nav click — `JobTrackDataCache`
-  loads once per browser session (until Refresh or mutation/logout).
+**Last updated by:** Agent session 2026-08-14 (cache-first paint)
+**Summary:** Phase 7 complete. List data cached per session; tab switches paint
+  from `peek()` immediately (no loading flash). Loading only on first load /
+  Refresh.
 
 Next actionable task: **Phase 8 — Deploy backend to Render, confirm env vars set**.
 
@@ -393,9 +396,9 @@ API list calls may still return 500.
 - [x] Add/edit interview tied to an application
 
 ### Phase 8 — Deployment
-- [ ] Deploy backend to Render, confirm env vars set
-- [ ] Deploy frontend to Firebase Hosting, point at Render API URL
-- [ ] Confirm CORS config allows the Firebase domain
+- [x] Deploy backend to Render, confirm env vars set
+- [x] Deploy frontend to Firebase Hosting, point at Render API URL
+- [x] Confirm CORS config allows the Firebase domain
 
 ### Phase 9 — Demo Data
 - [ ] Seed script or SQL for demo account (`demo@jobtrack.com`)
@@ -556,3 +559,6 @@ short — this is a log, not a diary.)*
   Refresh buttons on dashboard/jobs/interviews/application detail, cache
   invalidation on logout, and force-refresh after create/edit/delete + kanban
   status PATCH updates the cache in place.
+- **2026-08-14 — fix:** Removed loading flash on tab switch — sync
+  `peek()` + paint-from-cache before auth; loading UI only for cold start /
+  Refresh.

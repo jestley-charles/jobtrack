@@ -429,6 +429,38 @@
     showActiveView();
   }
 
+  function showApplicationsResult(applications) {
+    const loadingEl = document.getElementById('jobs-loading');
+    const emptyEl = document.getElementById('jobs-empty');
+    const listEl = document.getElementById('jobs-content');
+    const boardEl = document.getElementById('kanban-board');
+    const countEl = document.getElementById('jobs-count');
+
+    loadingEl.hidden = true;
+
+    if (!applications.length) {
+      emptyEl.hidden = false;
+      listEl.hidden = true;
+      boardEl.hidden = true;
+      countEl.hidden = true;
+      cachedApplications = [];
+      return;
+    }
+
+    emptyEl.hidden = true;
+    renderApplications(applications);
+  }
+
+  function paintFromCache() {
+    const data = JobTrackDataCache.peek();
+    if (!data) {
+      return false;
+    }
+    document.getElementById('jobs-error').hidden = true;
+    showApplicationsResult(data.applications);
+    return true;
+  }
+
   async function loadApplications(options) {
     const force = Boolean(options && options.force);
     const loadingEl = document.getElementById('jobs-loading');
@@ -438,9 +470,9 @@
     const boardEl = document.getElementById('kanban-board');
     const countEl = document.getElementById('jobs-count');
     const refreshBtn = document.getElementById('jobs-refresh-btn');
-    const hadCache = JobTrackDataCache.hasData();
+    const paintedFromCache = !force && JobTrackDataCache.hasData();
 
-    if (!hadCache || force) {
+    if (!paintedFromCache) {
       loadingEl.hidden = false;
       emptyEl.hidden = true;
       listEl.hidden = true;
@@ -457,20 +489,7 @@
       const data = force
         ? await JobTrackDataCache.refresh()
         : await JobTrackDataCache.ensureLoaded();
-      const applications = data.applications;
-
-      loadingEl.hidden = true;
-
-      if (!applications.length) {
-        emptyEl.hidden = false;
-        listEl.hidden = true;
-        boardEl.hidden = true;
-        countEl.hidden = true;
-        cachedApplications = [];
-        return;
-      }
-
-      renderApplications(applications);
+      showApplicationsResult(data.applications);
     } catch (err) {
       loadingEl.hidden = true;
       errorEl.textContent = err.message || 'Something went wrong loading applications.';
@@ -500,13 +519,17 @@
     });
   }
 
+  currentView = readStoredView();
+  updateViewToggleUi();
+  if (!paintFromCache()) {
+    document.getElementById('jobs-loading').hidden = false;
+  }
+
   JobTrackAppShell.init({ page: 'jobs' }).then(function (session) {
     if (!session) {
       return;
     }
 
-    currentView = readStoredView();
-    updateViewToggleUi();
     JobTrackApplicationForm.init({
       onSaved: function () {
         loadApplications({ force: true });

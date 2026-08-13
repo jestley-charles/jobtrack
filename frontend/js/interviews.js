@@ -382,6 +382,18 @@
     renderAgenda();
   }
 
+  function paintFromCache() {
+    const data = JobTrackDataCache.peek();
+    if (!data) {
+      return false;
+    }
+    document.getElementById('interviews-error').hidden = true;
+    applyLoadedData(data.applications, data.interviews, false);
+    document.getElementById('interviews-loading').hidden = true;
+    document.getElementById('interviews-content').hidden = false;
+    return true;
+  }
+
   async function loadInterviews(options) {
     const preserveSelection = options && options.preserveSelection;
     const force = Boolean(options && options.force);
@@ -389,14 +401,11 @@
     const errorEl = document.getElementById('interviews-error');
     const contentEl = document.getElementById('interviews-content');
     const refreshBtn = document.getElementById('interviews-refresh-btn');
-    const wasLoaded = !contentEl.hidden;
-    const hadCache = JobTrackDataCache.hasData();
+    const paintedFromCache = !force && !contentEl.hidden && JobTrackDataCache.hasData();
 
-    if ((!wasLoaded && !hadCache) || force) {
+    if (!paintedFromCache) {
       loadingEl.hidden = false;
-      if (!wasLoaded) {
-        contentEl.hidden = true;
-      }
+      contentEl.hidden = true;
     }
     errorEl.hidden = true;
     errorEl.textContent = '';
@@ -415,7 +424,7 @@
       contentEl.hidden = false;
     } catch (err) {
       loadingEl.hidden = true;
-      if (!wasLoaded && !JobTrackDataCache.hasData()) {
+      if (!JobTrackDataCache.hasData()) {
         contentEl.hidden = true;
       }
       errorEl.textContent = err.message || 'Something went wrong loading interviews.';
@@ -425,6 +434,10 @@
         refreshBtn.disabled = false;
       }
     }
+  }
+
+  if (!paintFromCache()) {
+    document.getElementById('interviews-loading').hidden = false;
   }
 
   JobTrackAppShell.init({ page: 'interviews' }).then(function (session) {

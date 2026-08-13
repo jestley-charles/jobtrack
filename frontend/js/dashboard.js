@@ -360,15 +360,27 @@
     renderActivityFeed(buildActivityEvents(applications, interviews));
   }
 
+  function paintFromCache() {
+    const data = JobTrackDataCache.peek();
+    if (!data) {
+      return false;
+    }
+    applyDashboardData(data.applications, data.interviews);
+    document.getElementById('dashboard-loading').hidden = true;
+    document.getElementById('dashboard-error').hidden = true;
+    document.getElementById('dashboard-content').hidden = false;
+    return true;
+  }
+
   async function loadDashboardStats(options) {
     const force = Boolean(options && options.force);
     const loadingEl = document.getElementById('dashboard-loading');
     const errorEl = document.getElementById('dashboard-error');
     const contentEl = document.getElementById('dashboard-content');
     const refreshBtn = document.getElementById('dashboard-refresh-btn');
-    const hadCache = JobTrackDataCache.hasData();
+    const paintedFromCache = !force && JobTrackDataCache.hasData();
 
-    if (!hadCache || force) {
+    if (!paintedFromCache) {
       loadingEl.hidden = false;
       contentEl.hidden = true;
     }
@@ -399,6 +411,10 @@
         refreshBtn.disabled = false;
       }
     }
+  }
+
+  if (!paintFromCache()) {
+    document.getElementById('dashboard-loading').hidden = false;
   }
 
   JobTrackAppShell.init({ page: 'dashboard' }).then(function (session) {

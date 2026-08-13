@@ -307,19 +307,37 @@
     errorEl.hidden = false;
   }
 
+  function paintApplication(applicationId) {
+    const data = JobTrackDataCache.peek();
+    if (!data) {
+      return false;
+    }
+    const application = data.applications.find(function (app) {
+      return app.id === applicationId;
+    });
+    if (!application) {
+      return false;
+    }
+    currentApplication = application;
+    renderApplicationDetails(currentApplication);
+    renderInterviews(interviewsForApplication(applicationId));
+    document.getElementById('application-loading').hidden = true;
+    document.getElementById('application-error').hidden = true;
+    document.getElementById('application-content').hidden = false;
+    return true;
+  }
+
   async function loadApplication(applicationId, options) {
     const force = Boolean(options && options.force);
     const loadingEl = document.getElementById('application-loading');
     const errorEl = document.getElementById('application-error');
     const contentEl = document.getElementById('application-content');
     const refreshBtn = document.getElementById('application-refresh-btn');
-    const hadCache = JobTrackDataCache.hasData();
+    const paintedFromCache = !force && !contentEl.hidden && JobTrackDataCache.hasData();
 
-    if (!hadCache || force) {
+    if (!paintedFromCache) {
       loadingEl.hidden = false;
-      if (!hadCache) {
-        contentEl.hidden = true;
-      }
+      contentEl.hidden = true;
     }
     errorEl.hidden = true;
 
@@ -415,6 +433,15 @@
         }
       });
     }
+  }
+
+  const earlyApplicationId = getApplicationId();
+  if (earlyApplicationId) {
+    if (!paintApplication(earlyApplicationId)) {
+      document.getElementById('application-loading').hidden = false;
+    }
+  } else {
+    showError('Invalid application link. Return to the jobs list and try again.');
   }
 
   JobTrackAppShell.init({ page: 'jobs' }).then(function (session) {
