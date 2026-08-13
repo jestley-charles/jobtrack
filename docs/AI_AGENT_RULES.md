@@ -281,18 +281,29 @@ already specified above. Newest at the bottom.)*
 - **2026-08-14:** Status-only updates use `PATCH /api/applications/{id}/status`
   with body `{ "status": "<ApplicationStatus>" }` (`PatchApplicationStatusRequest`).
   Kanban drop calls this endpoint; full-field edits still use PUT.
+- **2026-08-14:** Interview calendar lives on `interviews.html` as a month grid
+  (vanilla JS, no calendar library). Days are selectable; chips show time +
+  company (desktop), dots on mobile; agenda panel below lists that day's
+  interviews with links to application detail. Add/edit UI is a separate Phase 7 task.
+- **2026-08-14:** Interview add/edit uses shared `js/interview-form.js`
+  (`JobTrackInterviewForm`) modal — POST/PUT `/api/interviews`. Create locks
+  `applicationId` on application detail; interviews page shows application
+  select. `datetime-local` converted to/from ISO 8601 Instant. Delete available
+  on application detail interview rows.
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 6 — Kanban Board (complete)
-**Last updated by:** Agent session 2026-08-14 (PATCH status on drop)
-**Summary:** Dropping a Kanban card now PATCHes `/api/applications/{id}/status`.
-  Optimistic UI update with rollback + error message if the API call fails.
-  Phase 6 complete.
+**Phase:** Phase 7 — Interviews (complete)
+**Last updated by:** Agent session 2026-08-14 (add/edit interview)
+**Summary:** Users can add and edit interviews via a shared modal
+  (`JobTrackInterviewForm`). Application detail: Add interview (locked to that
+  app) + Edit/Delete per row. Interviews page: Add interview with application
+  select (defaults date to selected calendar day) + Edit from agenda. Phase 7
+  complete.
 
-Next actionable task: **Phase 7 — Upcoming interviews widget on dashboard**.
+Next actionable task: **Phase 8 — Deploy backend to Render, confirm env vars set**.
 
 ---
 
@@ -374,9 +385,9 @@ API list calls may still return 500.
 - [x] PATCH application status on drop
 
 ### Phase 7 — Interviews
-- [ ] Upcoming interviews widget on dashboard
-- [ ] Interview calendar view
-- [ ] Add/edit interview tied to an application
+- [x] Upcoming interviews widget on dashboard
+- [x] Interview calendar view
+- [x] Add/edit interview tied to an application
 
 ### Phase 8 — Deployment
 - [ ] Deploy backend to Render, confirm env vars set
@@ -420,7 +431,7 @@ short — this is a log, not a diary.)*
   `npm exec`; actual project creation and CLI login require user account
   access, so split into a separate user backlog item.
 - **2026-08-12 — Phase 0, task 5:** Render backend deployment prep —
-  repo-root `render.yaml` and `docs/RENDER_SETUP.md` added. Blueprint targets
+  repo-root `render.yaml` and `docs/RENDER_SETUP.md`. Blueprint targets
   `jobtrack-backend/` with Java 21, `/api/health`, and Supabase env var names.
   Actual Render service creation depends on GitHub remote setup plus Render
   dashboard access, so split into a separate user backlog item.
@@ -528,3 +539,12 @@ short — this is a log, not a diary.)*
 - **2026-08-14 — Phase 6, task 3:** PATCH status on drop —
   `PATCH /api/applications/{id}/status` + service/DTO/tests; board drop
   optimistic update with rollback on failure. Phase 6 complete.
+- **2026-08-14 — Phase 7, task 1:** Upcoming interviews widget on dashboard —
+  filters future interviews from existing API data, groups by day (Today /
+  Tomorrow / date), shows time + company link + type; empty state; cap 8.
+- **2026-08-14 — Phase 7, task 2:** Interview calendar view — month grid on
+  `interviews.html` with month nav, day chips/dots, selectable day agenda
+  linking to application detail. Add/edit deferred to next task.
+- **2026-08-14 — Phase 7, task 3:** Add/edit interview — shared
+  `JobTrackInterviewForm` modal (POST/PUT); application detail Add + Edit/Delete;
+  interviews page Add with application select + Edit from agenda. Phase 7 complete.

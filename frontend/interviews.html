@@ -36,14 +36,102 @@
       </nav>
 
       <main class="app-main">
-        <header class="app-page-header">
-          <h1>Interviews</h1>
-          <p class="app-page-lead">Upcoming and past interviews across your applications.</p>
+        <header class="app-page-header app-page-header--split">
+          <div>
+            <h1>Interviews</h1>
+            <p class="app-page-lead">Upcoming and past interviews across your applications.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="add-interview-btn">Add interview</button>
         </header>
-        <p class="app-placeholder">
-          Interview calendar and scheduling arrive in Phase 7.
-        </p>
+
+        <div class="interviews-page" id="interviews-page">
+          <p class="dashboard-message" id="interviews-loading">Loading interviews…</p>
+          <p class="dashboard-message dashboard-message--error" id="interviews-error" hidden></p>
+
+          <div id="interviews-content" hidden>
+            <div class="interview-calendar" aria-label="Interview calendar">
+              <div class="interview-calendar-toolbar">
+                <div class="interview-calendar-nav">
+                  <button type="button" class="btn btn-secondary btn-sm" id="calendar-prev" aria-label="Previous month">‹</button>
+                  <h2 class="interview-calendar-month" id="calendar-month-label">Month</h2>
+                  <button type="button" class="btn btn-secondary btn-sm" id="calendar-next" aria-label="Next month">›</button>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="calendar-today">Today</button>
+              </div>
+
+              <div class="interview-calendar-weekdays" aria-hidden="true" id="calendar-weekdays"></div>
+              <div class="interview-calendar-grid" id="calendar-grid" role="grid" aria-labelledby="calendar-month-label"></div>
+            </div>
+
+            <section class="interview-day-agenda" aria-labelledby="agenda-heading">
+              <h2 id="agenda-heading">
+                <span id="agenda-date-label">Selected day</span>
+              </h2>
+              <p class="interview-agenda-empty" id="agenda-empty" hidden>No interviews on this day.</p>
+              <ul class="interview-agenda-list" id="agenda-list" hidden></ul>
+            </section>
+          </div>
+        </div>
       </main>
+    </div>
+  </div>
+
+  <div class="modal" id="interview-modal" hidden aria-hidden="true">
+    <div class="modal-backdrop" data-interview-modal-close tabindex="-1"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="interview-modal-title">
+      <form id="interview-form" class="interview-form" novalidate>
+        <header class="modal-header">
+          <h2 id="interview-modal-title">Add interview</h2>
+          <button type="button" class="modal-close" data-interview-modal-close aria-label="Close">&times;</button>
+        </header>
+
+        <div class="modal-body">
+          <div class="form-field" id="interview-application-field">
+            <label for="interviewApplicationId">Application</label>
+            <select id="interviewApplicationId" name="applicationId" required>
+              <option value="">Select an application</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="interviewDate">Date &amp; time</label>
+            <input type="datetime-local" id="interviewDate" name="interviewDate" required>
+          </div>
+          <div class="form-field">
+            <label for="interviewType">Type</label>
+            <input type="text" id="interviewType" name="interviewType" list="interview-type-options" placeholder="e.g. Technical, Behavioral, Onsite">
+            <datalist id="interview-type-options">
+              <option value="Phone screen"></option>
+              <option value="Technical"></option>
+              <option value="Behavioral"></option>
+              <option value="Onsite"></option>
+              <option value="Final"></option>
+            </datalist>
+          </div>
+          <div class="form-field">
+            <label for="interviewer">Interviewer</label>
+            <input type="text" id="interviewer" name="interviewer" placeholder="Name or role">
+          </div>
+          <div class="form-field">
+            <label for="interviewResult">Result</label>
+            <input type="text" id="interviewResult" name="result" list="interview-result-options" placeholder="e.g. Pending, Passed, Rejected">
+            <datalist id="interview-result-options">
+              <option value="Pending"></option>
+              <option value="Passed"></option>
+              <option value="Rejected"></option>
+            </datalist>
+          </div>
+          <div class="form-field">
+            <label for="interviewNotes">Notes</label>
+            <textarea id="interviewNotes" name="notes" rows="3" placeholder="Prep notes, questions, follow-ups…"></textarea>
+          </div>
+          <p id="interview-form-error" class="form-message form-message--error" hidden></p>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-interview-modal-close>Cancel</button>
+          <button type="submit" class="btn btn-primary" id="interview-form-submit">Add interview</button>
+        </footer>
+      </form>
     </div>
   </div>
 
@@ -51,7 +139,9 @@
   <script src="js/config.js"></script>
   <script src="js/supabase-client.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
   <script src="js/app-shell.js"></script>
+  <script src="js/interview-form.js"></script>
   <script src="js/interviews.js"></script>
 </body>
 </html>

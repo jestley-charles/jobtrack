@@ -193,6 +193,29 @@
       item.appendChild(notesEl);
     }
 
+    const actions = document.createElement('div');
+    actions.className = 'interview-list-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'btn btn-secondary btn-sm';
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', function () {
+      JobTrackInterviewForm.openForEdit(interview);
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn btn-danger btn-sm';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.addEventListener('click', function () {
+      handleDeleteInterview(interview);
+    });
+
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+    item.appendChild(actions);
+
     return item;
   }
 
@@ -224,12 +247,7 @@
     loadingEl.hidden = false;
 
     try {
-      const response = await JobTrackApi.fetch('/api/interviews');
-      if (!response.ok) {
-        throw new Error('Could not load interviews.');
-      }
-
-      const allInterviews = await response.json();
+      const allInterviews = await JobTrackApi.fetchJsonList('/api/interviews');
       const forApplication = allInterviews.filter(function (interview) {
         return interview.applicationId === applicationId;
       });
@@ -237,6 +255,32 @@
     } catch (err) {
       loadingEl.hidden = true;
       renderInterviews([]);
+    }
+  }
+
+  async function handleDeleteInterview(interview) {
+    const label = interview.interviewType || 'Interview';
+    const confirmed = window.confirm(
+      'Delete this ' + label.toLowerCase() + '? This cannot be undone.'
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await JobTrackApi.fetch('/api/interviews/' + interview.id, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok && response.status !== 204) {
+        throw new Error('Could not delete interview. Please try again.');
+      }
+
+      if (currentApplication) {
+        loadInterviews(currentApplication.id);
+      }
+    } catch (err) {
+      alert(err.message || 'Something went wrong.');
     }
   }
 
@@ -322,6 +366,14 @@
     });
 
     document.getElementById('delete-application-btn').addEventListener('click', handleDelete);
+
+    document.getElementById('add-interview-btn').addEventListener('click', function () {
+      if (currentApplication) {
+        JobTrackInterviewForm.openForCreate({
+          applicationId: currentApplication.id,
+        });
+      }
+    });
   }
 
   JobTrackAppShell.init({ page: 'jobs' }).then(function (session) {
@@ -338,6 +390,12 @@
     JobTrackApplicationForm.init({
       onSaved: function () {
         loadApplication(applicationId);
+      },
+    });
+
+    JobTrackInterviewForm.init({
+      onSaved: function () {
+        loadInterviews(applicationId);
       },
     });
 
