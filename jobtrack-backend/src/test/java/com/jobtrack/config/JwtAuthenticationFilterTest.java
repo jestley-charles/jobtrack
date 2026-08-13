@@ -1,6 +1,7 @@
 package com.jobtrack.config;
 
 import com.jobtrack.config.SupabaseJwtProperties;
+import com.jobtrack.security.SupabaseJwksProvider;
 import com.jobtrack.security.SupabaseJwtValidator;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -31,7 +32,8 @@ class JwtAuthenticationFilterTest {
 	void setUp() {
 		SupabaseJwtProperties properties = new SupabaseJwtProperties();
 		properties.setSecret(SECRET);
-		filter = new JwtAuthenticationFilter(new SupabaseJwtValidator(properties));
+		SupabaseJwksProvider jwksProvider = new SupabaseJwksProvider(properties);
+		filter = new JwtAuthenticationFilter(new SupabaseJwtValidator(properties, jwksProvider));
 	}
 
 	@Test

@@ -2,17 +2,44 @@ package com.jobtrack.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "supabase.jwt")
+@ConfigurationProperties(prefix = "supabase")
 public class SupabaseJwtProperties {
 
-	private String secret;
+	/**
+	 * Project URL, e.g. https://your-ref.supabase.co — used to fetch JWKS for ES256 tokens.
+	 */
+	private String url;
+
+	private Jwt jwt = new Jwt();
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
 
 	public String getSecret() {
-		return secret;
+		return jwt.getSecret();
 	}
 
 	public void setSecret(String secret) {
-		this.secret = secret;
+		jwt.setSecret(secret);
+	}
+
+	public static class Jwt {
+
+		private String secret;
+
+		public String getSecret() {
+			return secret;
+		}
+
+		public void setSecret(String secret) {
+			this.secret = secret;
+		}
+
 	}
 
 }

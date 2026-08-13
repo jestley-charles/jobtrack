@@ -16,3 +16,5 @@ services:
         sync: false
       - key: SUPABASE_JWT_SECRET
         sync: false
+      - key: SUPABASE_URL
+        sync: false

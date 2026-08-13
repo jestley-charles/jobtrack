@@ -261,6 +261,10 @@ already specified above. Newest at the bottom.)*
   param, no client-side router). Fetches `GET /api/applications/{id}` plus
   interviews filtered client-side from `GET /api/interviews`. Edit reuses
   `JobTrackApplicationForm`; delete via `DELETE /api/applications/{id}`.
+- **2026-08-13:** Backend JWT validation supports Supabase JWT Signing Keys (ES256/RS256)
+  via JWKS at `{SUPABASE_URL}/auth/v1/.well-known/jwks.json`, with legacy HS256
+  `SUPABASE_JWT_SECRET` as fallback. Requires `SUPABASE_URL` on backend after
+  Supabase JWT migration.
 - **2026-08-13:** Dashboard recent activity feed is synthesized client-side from
   existing `/api/applications` + `/api/interviews` payloads (no activity/audit
   API). Events: added, applied, interview, offer, rejection — sorted by date,
@@ -271,11 +275,12 @@ already specified above. Newest at the bottom.)*
 ## 6. Current Status
 
 **Phase:** Phase 5 — Frontend Features (complete)
-**Last updated by:** Agent session 2026-08-13 (session-expiry redirect loop fix)
+**Last updated by:** Agent session 2026-08-13 (JWKS JWT validation for Supabase signing keys)
 **Summary:** Dashboard includes a recent activity feed — client-side timeline from
 applications (added, applied, offer, rejection) and interviews, with links to
-application detail. Phase 5 frontend features are complete. Fixed infinite
-login ↔ dashboard loop when Supabase cached a session after the JWT expired.
+application detail. Phase 5 frontend features are complete. Backend now verifies
+Supabase ES256 user tokens via JWKS when `SUPABASE_URL` is set (required after
+JWT Signing Keys migration).
 
 Next actionable task: **Phase 6 — Kanban columns**.
 
@@ -485,3 +490,12 @@ short — this is a log, not a diary.)*
   redirecting to login (prevents login page from seeing stale session and
   bouncing back to dashboard). Login page shows expired-session message when
   `?expired=1`.
+- **2026-08-13 — fix (v2):** Stronger session-expiry handling — auth guards use
+  `getUser()` instead of cached `getSession()`; `clearLocalSession()` wipes
+  `sb-*-auth-token` from localStorage; login with `?expired=1` never auto-redirects;
+  API 401 with valid Supabase user shows server-token error instead of logout loop.
+- **2026-08-13 — fix:** Backend JWKS validation — after Supabase JWT Signing Keys
+  migration, user tokens are ES256 (not HS256 legacy secret). Added
+  `SupabaseJwksProvider` + `SUPABASE_URL` env; validator supports both algorithms.
+  Root cause of login-then-immediate-401 loop when legacy secret matched but tokens
+  were asymmetrically signed.

@@ -25,7 +25,8 @@ class SupabaseJwtValidatorTest {
 	void setUp() {
 		SupabaseJwtProperties properties = new SupabaseJwtProperties();
 		properties.setSecret(SECRET);
-		validator = new SupabaseJwtValidator(properties);
+		SupabaseJwksProvider jwksProvider = new SupabaseJwksProvider(properties);
+		validator = new SupabaseJwtValidator(properties, jwksProvider);
 	}
 
 	@Test

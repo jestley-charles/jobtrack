@@ -59,6 +59,11 @@
     }
 
     if (response.status === 401) {
+      if (await window.JobTrackAuth.hasValidUser()) {
+        throw new Error(
+          'The server rejected your login token. If this keeps happening, verify SUPABASE_JWT_SECRET on the backend matches your Supabase project JWT secret.'
+        );
+      }
       await window.JobTrackAuth.handleSessionExpired(
         window.location.pathname.split('/').pop()
       );

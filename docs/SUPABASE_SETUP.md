@@ -41,15 +41,16 @@ For Spring Boot, use the **direct** connection (port **5432**, not the pooler) u
 
 **Alternative:** Under **Database → Connection string → JDBC**, Supabase may show a ready-made JDBC URL. Append `?sslmode=require` if it is missing.
 
-### JWT secret (backend token validation — Phase 2)
+### JWT validation (backend — Phase 2)
 
-Go to **Settings → API** (or **JWT Keys**).
+Go to **Settings → JWT Keys**.
 
 | Variable | Where to find it |
 |---|---|
-| `SUPABASE_JWT_SECRET` | **JWT Secret** (legacy) or the **JWT Signing Secret** for the `anon` / service keys section — copy the secret used to sign user access tokens |
+| `SUPABASE_URL` | **Project URL** — `https://[PROJECT-REF].supabase.co`. Required if your project uses **JWT Signing Keys** (ES256/RS256). The backend fetches public keys from `{SUPABASE_URL}/auth/v1/.well-known/jwks.json`. |
+| `SUPABASE_JWT_SECRET` | **Legacy JWT Secret** tab — only needed for HS256 tokens. After migrating to JWT Signing Keys and rotating, new user tokens are **not** signed with this secret; keep it during transition for old tokens only. |
 
-> The backend validates `Authorization: Bearer <token>` headers against this secret in Phase 2. You can add it to `.env` now even though the filter is not wired yet.
+> If Supabase shows *“Legacy JWT secret has been migrated to new JWT Signing Keys”*, your login tokens are likely **ES256**. Setting `SUPABASE_JWT_SECRET` alone is not enough — you must set `SUPABASE_URL` so the backend can verify via JWKS.
 
 ---
 

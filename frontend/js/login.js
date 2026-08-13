@@ -12,6 +12,7 @@
   }
 
   const redirectTo = sanitizeRedirect(params.get('redirect'));
+  const sessionExpired = params.get('expired') === '1';
 
   function showError(message) {
     errorEl.textContent = message;
@@ -23,12 +24,20 @@
     submitBtn.textContent = loading ? 'Logging in…' : 'Log in';
   }
 
-  JobTrackAuth.redirectIfAuthenticated(redirectTo).then(function (redirected) {
+  async function init() {
+    if (sessionExpired) {
+      await JobTrackAuth.clearLocalSession();
+    }
+
+    const redirected = await JobTrackAuth.redirectIfAuthenticated(redirectTo);
     if (redirected) {
       return;
     }
 
-    if (params.get('expired') === '1') {
+    if (sessionExpired) {
+      params.delete('expired');
+      const qs = params.toString();
+      history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : ''));
       showError('Your session expired. Please log in again.');
     }
 
@@ -47,12 +56,14 @@
       setLoading(true);
       try {
         await JobTrackAuth.signIn(email, password);
-        window.location.href = redirectTo;
+        window.location.replace(redirectTo);
       } catch (err) {
         showError(err.message);
       } finally {
         setLoading(false);
       }
     });
-  });
+  }
+
+  init();
 })();

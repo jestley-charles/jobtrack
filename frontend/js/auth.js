@@ -2,8 +2,20 @@
  * Supabase Auth helpers — sign up, log in, log out, session guards.
  */
 (function () {
+  var handlingSessionExpired = false;
+
   function getClient() {
     return window.JobTrackSupabase.getClient();
+  }
+
+  function getCurrentPageName() {
+    var path = window.location.pathname.split('/').pop() || '';
+    return path || 'index.html';
+  }
+
+  function isLoginPage() {
+    var page = getCurrentPageName();
+    return page === 'login' || page === 'login.html';
   }
 
   function formatAuthError(error) {
@@ -14,6 +26,19 @@
       return 'Invalid email or password.';
     }
     return error.message;
+  }
+
+  async function clearLocalSession() {
+    try {
+      await getClient().auth.signOut({ scope: 'local' });
+    } catch (err) {
+      // Session may already be invalid; still clear storage below.
+    }
+    Object.keys(localStorage).forEach(function (key) {
+      if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        localStorage.removeItem(key);
+      }
+    });
   }
 
   async function getSession() {
@@ -27,6 +52,11 @@
   async function getAccessToken() {
     const session = await getSession();
     return session ? session.access_token : null;
+  }
+
+  async function hasValidUser() {
+    const { data, error } = await getClient().auth.getUser();
+    return Boolean(data.user) && !error;
   }
 
   async function signUp(email, password) {
@@ -54,44 +84,55 @@
 
   /**
    * Redirect to login if there is no active session.
+   * Uses getUser() so stale cached sessions are not treated as logged in.
    * @param {string} [redirectTo] — page to return to after login
    */
   async function requireAuth(redirectTo) {
-    const session = await getSession();
-    if (!session) {
-      const next = redirectTo || window.location.pathname.split('/').pop() || 'dashboard.html';
-      window.location.href = `login.html?redirect=${encodeURIComponent(next)}`;
+    const valid = await hasValidUser();
+    if (!valid) {
+      await clearLocalSession();
+      const next = redirectTo || getCurrentPageName() || 'dashboard.html';
+      window.location.replace('login.html?redirect=' + encodeURIComponent(next));
       return null;
     }
-    return session;
+    return getSession();
   }
 
   /**
    * Redirect authenticated users away from public auth pages.
+   * Never auto-redirect when ?expired=1 — that flag means we were sent here
+   * after clearing a stale session and must let the user log in again.
    */
   async function redirectIfAuthenticated(destination) {
-    const session = await getSession();
-    if (session) {
-      window.location.href = destination || 'dashboard.html';
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('expired') === '1') {
+      await clearLocalSession();
+      return false;
+    }
+
+    const valid = await hasValidUser();
+    if (valid) {
+      window.location.replace(destination || 'dashboard.html');
       return true;
     }
+
+    await clearLocalSession();
     return false;
   }
 
   /**
    * Clear stale local auth state and redirect to login (e.g. after API 401).
-   * Uses local sign-out so an expired token does not leave a cached session
-   * that would bounce the user back to a protected page.
    */
   async function handleSessionExpired(redirectTo) {
-    try {
-      await getClient().auth.signOut({ scope: 'local' });
-    } catch (err) {
-      // Session may already be invalid; still redirect.
+    if (handlingSessionExpired || isLoginPage()) {
+      return;
     }
-    const next = redirectTo || window.location.pathname.split('/').pop() || 'dashboard.html';
-    window.location.href =
-      'login.html?redirect=' + encodeURIComponent(next) + '&expired=1';
+    handlingSessionExpired = true;
+    await clearLocalSession();
+    const next = redirectTo || getCurrentPageName() || 'dashboard.html';
+    window.location.replace(
+      'login.html?redirect=' + encodeURIComponent(next) + '&expired=1'
+    );
   }
 
   window.JobTrackAuth = {
@@ -100,6 +141,8 @@
     signOut,
     getSession,
     getAccessToken,
+    hasValidUser,
+    clearLocalSession,
     requireAuth,
     redirectIfAuthenticated,
     handleSessionExpired,
