@@ -28,6 +28,10 @@
       return;
     }
 
+    if (params.get('expired') === '1') {
+      showError('Your session expired. Please log in again.');
+    }
+
     form.addEventListener('submit', async function (event) {
       event.preventDefault();
       showError('');

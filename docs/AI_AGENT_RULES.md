@@ -271,10 +271,11 @@ already specified above. Newest at the bottom.)*
 ## 6. Current Status
 
 **Phase:** Phase 5 — Frontend Features (complete)
-**Last updated by:** Agent session 2026-08-13 (Recent activity feed)
+**Last updated by:** Agent session 2026-08-13 (session-expiry redirect loop fix)
 **Summary:** Dashboard includes a recent activity feed — client-side timeline from
 applications (added, applied, offer, rejection) and interviews, with links to
-application detail. Phase 5 frontend features are complete.
+application detail. Phase 5 frontend features are complete. Fixed infinite
+login ↔ dashboard loop when Supabase cached a session after the JWT expired.
 
 Next actionable task: **Phase 6 — Kanban columns**.
 
@@ -479,3 +480,8 @@ short — this is a log, not a diary.)*
   built from existing API data (no new endpoint). Timeline events for added,
   applied, interviews, offers, rejections; company links to detail page; empty
   state. Phase 5 complete.
+- **2026-08-13 — fix:** Session-expiry redirect loop — on API 401,
+  `JobTrackAuth.handleSessionExpired()` clears local Supabase session before
+  redirecting to login (prevents login page from seeing stale session and
+  bouncing back to dashboard). Login page shows expired-session message when
+  `?expired=1`.

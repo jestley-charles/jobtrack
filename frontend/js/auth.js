@@ -78,6 +78,22 @@
     return false;
   }
 
+  /**
+   * Clear stale local auth state and redirect to login (e.g. after API 401).
+   * Uses local sign-out so an expired token does not leave a cached session
+   * that would bounce the user back to a protected page.
+   */
+  async function handleSessionExpired(redirectTo) {
+    try {
+      await getClient().auth.signOut({ scope: 'local' });
+    } catch (err) {
+      // Session may already be invalid; still redirect.
+    }
+    const next = redirectTo || window.location.pathname.split('/').pop() || 'dashboard.html';
+    window.location.href =
+      'login.html?redirect=' + encodeURIComponent(next) + '&expired=1';
+  }
+
   window.JobTrackAuth = {
     signUp,
     signIn,
@@ -86,6 +102,7 @@
     getAccessToken,
     requireAuth,
     redirectIfAuthenticated,
+    handleSessionExpired,
     formatAuthError,
   };
 })();

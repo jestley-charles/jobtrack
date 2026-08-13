@@ -59,7 +59,9 @@
     }
 
     if (response.status === 401) {
-      window.location.href = 'login.html';
+      await window.JobTrackAuth.handleSessionExpired(
+        window.location.pathname.split('/').pop()
+      );
       throw new Error('Session expired. Please log in again.');
     }
 
