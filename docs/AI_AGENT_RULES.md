@@ -250,19 +250,24 @@ already specified above. Newest at the bottom.)*
   `ResponseStatusException` → matching status; malformed JSON / bad path params
   → 400; missing auth context → 401; unexpected exceptions → 500 with generic
   message (logged server-side, no stack traces).
+- **2026-08-13:** Authenticated app pages share a duplicated HTML shell (header +
+  sidebar + main) with common behavior in `js/app-shell.js` (`JobTrackAppShell.init`
+  sets active nav, user menu, logout). Nav pages: `dashboard.html`, `jobs.html`,
+  `interviews.html`, `contacts.html`, `settings.html`.
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 4 — Frontend Base (not started)
-**Last updated by:** Agent session 2026-08-13 (Centralized error handling)
-**Summary:** Phase 3 backend CRUD is complete. Added `GlobalExceptionHandler`
-and `ApiErrorResponse` for consistent JSON error bodies across all `/api/*`
-endpoints — validation failures include per-field errors; 404/401/500 handled
-without leaking stack traces. Unit + controller tests pass (53 total).
+**Phase:** Phase 5 — Frontend Features (not started)
+**Last updated by:** Agent session 2026-08-13 (Dashboard shell)
+**Summary:** Authenticated app shell complete — header with user initials menu,
+sidebar nav (Dashboard, Jobs, Interviews, Contacts, Settings), shared
+`app-shell.js` for auth guard / active nav / logout. Placeholder pages for each
+section; dashboard content (stats, charts) is Phase 5.
 
-Next actionable task: **Phase 4 — Landing page ("Take control of your job search")**.
+Next actionable task: **Phase 5 — Dashboard stats** (Applications / Interviews /
+Offers counts + status bar chart).
 
 ---
 
@@ -322,9 +327,9 @@ lives, repro steps if known, suspected cause if known.)*
 - [x] Centralized error handling (`@ControllerAdvice`)
 
 ### Phase 4 — Frontend Base
-- [ ] Landing page ("Take control of your job search")
-- [ ] Sign up / log in pages
-- [ ] Dashboard shell with sidebar nav (Dashboard, Jobs, Interviews,
+- [x] Landing page ("Take control of your job search")
+- [x] Sign up / log in pages
+- [x] Dashboard shell with sidebar nav (Dashboard, Jobs, Interviews,
       Contacts, Settings)
 
 ### Phase 5 — Frontend Features
@@ -428,3 +433,17 @@ short — this is a log, not a diary.)*
   malformed JSON, bad path params, missing auth (401), and unexpected errors
   (500, generic message). `GlobalExceptionHandlerTest` with 6 cases; all 53
   backend tests pass. Phase 3 complete.
+- **2026-08-13 — Phase 4, task 1:** Landing page — rebuilt `index.html` as
+  full SaaS landing (hero, product preview mock, feature cards, bottom CTA,
+  header nav). Added `js/landing.js` for auth redirect; extended
+  `css/styles.css` with landing layout and responsive preview grid.
+- **2026-08-13 — Phase 4, task 2:** Sign up / log in pages — verified Phase 2
+  Supabase auth works; polished `signup.html` and `login.html` with split
+  branding aside + form layout matching landing visual style. Added redirect
+  sanitization in `login.js`.
+- **2026-08-13 — Phase 4, task 3:** Dashboard shell — rebuilt `dashboard.html`
+  with header + sidebar layout matching app mockup. Added `jobs.html`,
+  `interviews.html`, `contacts.html`, `settings.html` placeholders and
+  `js/app-shell.js` (auth guard, active nav, user initials dropdown, logout).
+  Extended `css/styles.css` with app shell styles + mobile horizontal nav.
+  Phase 4 complete.

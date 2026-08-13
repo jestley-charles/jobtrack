@@ -4,7 +4,14 @@
   const submitBtn = document.getElementById('submit-btn');
 
   const params = new URLSearchParams(window.location.search);
-  const redirectTo = params.get('redirect') || 'dashboard.html';
+  function sanitizeRedirect(value) {
+    if (!value || value.includes('://') || value.startsWith('//') || value.includes('..')) {
+      return 'dashboard.html';
+    }
+    return value;
+  }
+
+  const redirectTo = sanitizeRedirect(params.get('redirect'));
 
   function showError(message) {
     errorEl.textContent = message;

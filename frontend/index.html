@@ -3,19 +3,124 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobTrack</title>
+  <meta name="description" content="JobTrack — track job applications, interviews, and contacts in one place. Take control of your job search.">
+  <title>JobTrack — Take control of your job search</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body>
-  <main class="landing">
-    <div class="landing-card">
-      <h1>JobTrack</h1>
-      <p class="landing-tagline">Take control of your job search.</p>
+<body class="landing-page">
+  <header class="landing-header">
+    <a class="landing-logo" href="index.html">JobTrack</a>
+    <nav class="landing-nav" aria-label="Main">
+      <a class="landing-nav-link" href="login.html">Log in</a>
+      <a class="btn btn-primary btn-sm" href="signup.html">Get started</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="landing-hero">
+      <p class="landing-eyebrow">Your personal job search dashboard</p>
+      <h1>Take control of your job search.</h1>
+      <p class="landing-lead">
+        Track every application, interview, and recruiter contact in one place.
+        Move opportunities through your pipeline with a visual Kanban board — no
+        more scattered spreadsheets or forgotten follow-ups.
+      </p>
       <div class="landing-actions">
-        <a class="btn btn-primary" href="signup.html">Get started</a>
-        <a class="btn btn-secondary" href="login.html">Log in</a>
+        <a class="btn btn-primary btn-lg" href="signup.html">Get started free</a>
+        <a class="btn btn-secondary btn-lg" href="login.html">Log in</a>
       </div>
-    </div>
+    </section>
+
+    <section class="landing-preview" aria-label="Product preview">
+      <div class="preview-window">
+        <div class="preview-chrome">
+          <span class="preview-dot"></span>
+          <span class="preview-dot"></span>
+          <span class="preview-dot"></span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-stats">
+            <div class="preview-stat">
+              <span class="preview-stat-label">Applications</span>
+              <span class="preview-stat-value">24</span>
+            </div>
+            <div class="preview-stat">
+              <span class="preview-stat-label">Interviews</span>
+              <span class="preview-stat-value">5</span>
+            </div>
+            <div class="preview-stat">
+              <span class="preview-stat-label">Offers</span>
+              <span class="preview-stat-value">2</span>
+            </div>
+          </div>
+          <div class="preview-kanban">
+            <div class="preview-column">
+              <span class="preview-column-title">Wishlist</span>
+              <div class="preview-card">Netflix</div>
+              <div class="preview-card">Stripe</div>
+            </div>
+            <div class="preview-column">
+              <span class="preview-column-title">Applied</span>
+              <div class="preview-card preview-card--active">Google</div>
+              <div class="preview-card">Microsoft</div>
+            </div>
+            <div class="preview-column">
+              <span class="preview-column-title">Interview</span>
+              <div class="preview-card">Amazon</div>
+            </div>
+            <div class="preview-column">
+              <span class="preview-column-title">Offer</span>
+              <div class="preview-card preview-card--offer">Acme Corp</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-features">
+      <h2>Everything you need to stay organized</h2>
+      <p class="landing-features-lead">
+        Built for real job searches — from first application to signed offer.
+      </p>
+      <ul class="feature-grid">
+        <li class="feature-card">
+          <span class="feature-icon" aria-hidden="true">📋</span>
+          <h3>Application tracking</h3>
+          <p>Log company, role, salary range, status, and job links for every opportunity.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-icon" aria-hidden="true">▦</span>
+          <h3>Kanban pipeline</h3>
+          <p>Drag cards from Wishlist to Applied, Interview, Offer — or Rejected.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-icon" aria-hidden="true">📅</span>
+          <h3>Interview scheduling</h3>
+          <p>Attach interviews to applications with dates, types, and notes.</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-icon" aria-hidden="true">👤</span>
+          <h3>Contacts &amp; recruiters</h3>
+          <p>Keep recruiter names, emails, and LinkedIn profiles tied to your search.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="landing-cta">
+      <h2>Ready to land your next role?</h2>
+      <p>Create a free account and start tracking today.</p>
+      <a class="btn btn-primary btn-lg" href="signup.html">Get started free</a>
+    </section>
   </main>
+
+  <footer class="landing-footer">
+    <p>&copy; 2026 JobTrack</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/landing.js"></script>
 </body>
 </html>
