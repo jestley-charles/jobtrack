@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="JobTrack account settings.">
-  <title>Settings — JobTrack</title>
+  <meta name="description" content="Review rejected applications and note possible reasons in JobTrack.">
+  <title>Rejected — JobTrack</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="app-page">
@@ -37,13 +37,29 @@
       </nav>
 
       <main class="app-main">
-        <header class="app-page-header">
-          <h1>Settings</h1>
-          <p class="app-page-lead">Account preferences and profile.</p>
+        <header class="app-page-header app-page-header--split">
+          <div>
+            <h1>Rejected</h1>
+            <p class="app-page-lead">Track what may have gone wrong so you can improve the next round.</p>
+            <p class="rejected-count" id="rejected-count" hidden></p>
+          </div>
+          <button type="button" class="btn btn-secondary" id="rejected-refresh-btn">Refresh</button>
         </header>
-        <p class="app-placeholder">
-          Account settings will be added in a later phase.
-        </p>
+
+        <div class="rejected-page" id="rejected-page">
+          <p class="dashboard-message" id="rejected-loading" hidden>Loading rejected applications…</p>
+          <p class="dashboard-message dashboard-message--error" id="rejected-error" hidden></p>
+
+          <div class="rejected-empty" id="rejected-empty" hidden>
+            <p class="rejected-empty-title">No rejections yet</p>
+            <p class="rejected-empty-hint">When an application is marked Rejected, it will appear here so you can note the likely reason.</p>
+            <a class="btn btn-primary" href="jobs.html">Go to Jobs</a>
+          </div>
+
+          <div id="rejected-content" hidden>
+            <div class="rejected-list" id="rejected-list" role="list"></div>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -56,6 +72,6 @@
   <script src="js/data-cache.js"></script>
   <script src="js/interview-briefing.js"></script>
   <script src="js/app-shell.js"></script>
-  <script src="js/settings.js"></script>
+  <script src="js/rejected.js"></script>
 </body>
 </html>

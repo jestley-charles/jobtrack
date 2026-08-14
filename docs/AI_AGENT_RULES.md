@@ -135,6 +135,7 @@ GET    /api/applications/{id}
 POST   /api/applications
 PUT    /api/applications/{id}
 PATCH  /api/applications/{id}/status
+PATCH  /api/applications/{id}/rejection-reason
 DELETE /api/applications/{id}
 
 GET    /api/interviews
@@ -154,7 +155,8 @@ DELETE /api/contacts/{id}
 ```
 users          (managed by Supabase Auth)
 applications   id, user_id, company, position, location, salary_min,
-               salary_max, status, date_applied, job_url, created_at, updated_at
+               salary_max, status, date_applied, job_url, rejection_reason,
+               created_at, updated_at
 interviews     id, application_id, interview_date, interview_type,
                interviewer, notes, result
 contacts       id, user_id, name, company, role, email, linkedin_url, notes
@@ -254,8 +256,8 @@ already specified above. Newest at the bottom.)*
 - **2026-08-13:** Authenticated app pages share a duplicated HTML shell (header +
   sidebar + main) with common behavior in `js/app-shell.js` (`JobTrackAppShell.init`
   sets active nav, user menu, logout). Nav pages: `dashboard.html`, `jobs.html`,
-  `interviews.html`, `offers.html`, `settings.html` (Contacts tab replaced by
-  Offers — see 2026-08-14).
+  `interviews.html`, `offers.html`, `rejected.html`, `settings.html` (Contacts
+  tab replaced by Offers — see 2026-08-14; Rejected tab added 2026-08-14).
 - **2026-08-13:** Application add/edit uses a modal on `jobs.html` with logic in
   `js/application-form.js` (`JobTrackApplicationForm`). Shared form field styles
   reuse `.form-field` from auth pages; modal is vanilla JS (no dialog element).
@@ -319,16 +321,27 @@ already specified above. Newest at the bottom.)*
   assistant-style modal: **Last time | Today (emphasized center) | Next up**.
   Company links go to application detail; footer has Got it + Open calendar.
   Module: `js/interview-briefing.js`.
+- **2026-08-14:** Interview briefing opens immediately with a loading state
+  (does not wait for dashboard paint). Schedule rows show relative day labels
+  (“3 days ago” / “in 2 days”), interview type as a badge, and the whole row
+  links to `application.html?id=…`.
+- **2026-08-14:** Dashboard stat cards are links — Applications → `jobs.html`,
+  Interviews → `interviews.html`, Offers → `offers.html`.
+- **2026-08-14:** **Rejected** nav tab (`rejected.html` + `js/rejected.js`).
+  Lists `status === Rejected` apps with editable `rejection_reason`. Backend:
+  Flyway `V2__add_rejection_reason.sql`,
+  `PATCH /api/applications/{id}/rejection-reason` (`PatchRejectionReasonRequest`).
+  Field is not wiped by create/update/status PATCH — only the dedicated endpoint
+  writes it. Demo seed includes sample reasons for Rejected apps.
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 10 — Polish (in progress)
-**Last updated by:** Agent session 2026-08-14 (interview briefing modal)
-**Summary:** Post-login interview briefing modal (last / today / next) replaces
-  the dashboard upcoming-interviews section. Modal is closable (backdrop, ×,
-  Escape, Got it).
+**Last updated by:** Agent session 2026-08-14 (assistant fixes + Rejected tab)
+**Summary:** Assistant loading/schedule-card fixes, dashboard stat → tab links,
+  and new Rejected tab with rejection-reason notes (API + UI + seed).
 
 Next actionable task: **Phase 10 — Responsive layout pass (mobile/tablet)**.
 
@@ -433,6 +446,9 @@ API list calls may still return 500.
 - [x] Client-side paging — dashboard recent activity; Jobs list view (not kanban)
 - [x] Replace Contacts nav with Offers comparison page
 - [x] Post-login interview briefing modal; remove dashboard upcoming section
+- [x] Assistant loading state + schedule card polish (type, relative days, clickable)
+- [x] Dashboard stat cards navigate to Jobs / Interviews / Offers tabs
+- [x] Rejected tab with rejection-reason notes
 - [ ] Responsive layout pass (mobile/tablet)
 - [ ] Empty states (no applications yet, etc.)
 - [ ] Loading/error states on all fetch calls
@@ -607,3 +623,8 @@ short — this is a log, not a diary.)*
   interviews section. Login/signup sets briefing flag; `interview-briefing.js`
   modal shows Last / Today (center, emphasized) / Next with company links,
   Got it, Open calendar. Closable via backdrop, ×, Escape.
+- **2026-08-14 — fix + implement:** Assistant opens with loading state on
+  startup; schedule rows show interview type badge + relative days and link to
+  application detail. Dashboard stat cards link to Jobs/Interviews/Offers.
+  New Rejected tab (`rejected.html`) with `rejection_reason` notes —
+  Flyway V2 + `PATCH .../rejection-reason`; demo seed sample reasons.

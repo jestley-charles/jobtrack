@@ -50,6 +50,9 @@ public class Application {
 	@Column(name = "job_url")
 	private String jobUrl;
 
+	@Column(name = "rejection_reason")
+	private String rejectionReason;
+
 	@CreationTimestamp
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private Instant createdAt;
@@ -136,6 +139,14 @@ public class Application {
 
 	public void setJobUrl(String jobUrl) {
 		this.jobUrl = jobUrl;
+	}
+
+	public String getRejectionReason() {
+		return rejectionReason;
+	}
+
+	public void setRejectionReason(String rejectionReason) {
+		this.rejectionReason = rejectionReason;
 	}
 
 	public Instant getCreatedAt() {

@@ -4,6 +4,7 @@
  */
 (function () {
   const FLAG_KEY = 'jobtrack.interviewBriefing.pending';
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
   let modalEl = null;
   let previouslyFocused = null;
 
@@ -45,16 +46,35 @@
     });
   }
 
-  function formatDayLabel(dateKey, todayKey) {
-    if (dateKey === todayKey) {
+  function dayDiff(dateKey, todayKey) {
+    const target = new Date(dateKey + 'T12:00:00');
+    const today = new Date(todayKey + 'T12:00:00');
+    return Math.round((target.getTime() - today.getTime()) / MS_PER_DAY);
+  }
+
+  function formatRelativeDay(dateKey, todayKey) {
+    const days = dayDiff(dateKey, todayKey);
+    if (days === 0) {
       return 'Today';
     }
-    const date = new Date(dateKey + 'T12:00:00');
-    return date.toLocaleDateString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
+    if (days === -1) {
+      return 'Yesterday';
+    }
+    if (days === 1) {
+      return 'Tomorrow';
+    }
+    if (days < 0) {
+      return Math.abs(days) + ' days ago';
+    }
+    return 'in ' + days + ' days';
+  }
+
+  function normalizeInterviewType(value) {
+    if (typeof value !== 'string') {
+      return 'Interview';
+    }
+    const trimmed = value.trim();
+    return trimmed || 'Interview';
   }
 
   function enrichInterviews(applications, interviews) {
@@ -74,8 +94,9 @@
           id: interview.id,
           applicationId: interview.applicationId,
           interviewDate: interview.interviewDate,
-          interviewType: interview.interviewType || 'Interview',
+          interviewType: normalizeInterviewType(interview.interviewType),
           company: app ? app.company : 'Unknown company',
+          position: app ? app.position : '',
           dateKey: Number.isNaN(when.getTime()) ? null : localDateKey(when),
           timeMs: when.getTime(),
         };
@@ -120,8 +141,18 @@
   }
 
   function createInterviewRow(item) {
-    const row = document.createElement('div');
+    const row = document.createElement('a');
     row.className = 'briefing-interview';
+    row.href = 'application.html?id=' + encodeURIComponent(item.applicationId);
+    row.setAttribute(
+      'aria-label',
+      item.company +
+        (item.position ? ', ' + item.position : '') +
+        ', ' +
+        item.interviewType +
+        ' at ' +
+        formatTime(item.interviewDate)
+    );
 
     const timeEl = document.createElement('time');
     timeEl.className = 'briefing-interview-time';
@@ -131,9 +162,8 @@
     const body = document.createElement('div');
     body.className = 'briefing-interview-body';
 
-    const company = document.createElement('a');
+    const company = document.createElement('span');
     company.className = 'briefing-interview-company';
-    company.href = 'application.html?id=' + encodeURIComponent(item.applicationId);
     company.textContent = item.company;
 
     const typeEl = document.createElement('span');
@@ -200,7 +230,11 @@
       '  </header>' +
       '  <div class="modal-body briefing-body">' +
       '    <p class="briefing-lead" id="briefing-lead"></p>' +
-      '    <div class="briefing-columns" id="briefing-columns">' +
+      '    <div class="briefing-loading" id="briefing-loading" hidden>' +
+      '      <div class="briefing-loading-spinner" aria-hidden="true"></div>' +
+      '      <p class="briefing-loading-text">Loading your schedule…</p>' +
+      '    </div>' +
+      '    <div class="briefing-columns" id="briefing-columns" hidden>' +
       '      <section class="briefing-column" id="briefing-last" aria-label="Last interview"></section>' +
       '      <section class="briefing-column briefing-column--today" id="briefing-today" aria-label="Today"></section>' +
       '      <section class="briefing-column" id="briefing-next" aria-label="Next interview"></section>' +
@@ -227,6 +261,22 @@
     });
 
     return modalEl;
+  }
+
+  function setLoading(isLoading) {
+    ensureModal();
+    const loadingEl = document.getElementById('briefing-loading');
+    const columnsEl = document.getElementById('briefing-columns');
+    const leadEl = document.getElementById('briefing-lead');
+    if (loadingEl) {
+      loadingEl.hidden = !isLoading;
+    }
+    if (columnsEl) {
+      columnsEl.hidden = isLoading;
+    }
+    if (leadEl && isLoading) {
+      leadEl.textContent = 'Pulling up your last interview, today’s plan, and what’s next…';
+    }
   }
 
   function open() {
@@ -256,6 +306,7 @@
 
   function render(schedule) {
     ensureModal();
+    setLoading(false);
     const lead = document.getElementById('briefing-lead');
     const hasToday = schedule.today.length > 0;
     const hasNext = schedule.next.length > 0;
@@ -277,14 +328,16 @@
 
     fillColumn(document.getElementById('briefing-last'), {
       label: 'Last time',
-      sublabel: schedule.last ? formatDayLabel(schedule.last.dateKey, schedule.todayKey) : null,
+      sublabel: schedule.last
+        ? formatRelativeDay(schedule.last.dateKey, schedule.todayKey)
+        : null,
       items: schedule.last ? [schedule.last] : [],
       emptyText: 'No past interviews',
     });
 
     fillColumn(document.getElementById('briefing-today'), {
       label: 'Today',
-      sublabel: formatDayLabel(schedule.todayKey, schedule.todayKey),
+      sublabel: formatRelativeDay(schedule.todayKey, schedule.todayKey),
       items: schedule.today,
       emptyText: 'Clear day',
     });
@@ -292,7 +345,7 @@
     fillColumn(document.getElementById('briefing-next'), {
       label: 'Next up',
       sublabel: schedule.next.length
-        ? formatDayLabel(schedule.next[0].dateKey, schedule.todayKey)
+        ? formatRelativeDay(schedule.next[0].dateKey, schedule.todayKey)
         : null,
       items: schedule.next,
       emptyText: 'Nothing scheduled',
@@ -307,14 +360,18 @@
       return false;
     }
 
+    ensureModal();
+    setLoading(true);
+    open();
+
     try {
       const data = await JobTrackDataCache.ensureLoaded();
       const schedule = buildSchedule(data.applications, data.interviews);
       render(schedule);
-      open();
       return true;
     } catch (err) {
-      // Login briefing is best-effort — don't block the page on failure.
+      // Login briefing is best-effort — don't leave a stuck loading modal.
+      close();
       return false;
     }
   }

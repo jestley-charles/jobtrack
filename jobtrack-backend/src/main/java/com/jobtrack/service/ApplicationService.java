@@ -63,6 +63,17 @@ public class ApplicationService {
 	}
 
 	@Transactional
+	public ApplicationResponse updateRejectionReason(UUID userId, UUID applicationId, String rejectionReason) {
+		Application application = findOwnedApplication(userId, applicationId);
+		String normalized = rejectionReason == null ? null : rejectionReason.trim();
+		if (normalized != null && normalized.isEmpty()) {
+			normalized = null;
+		}
+		application.setRejectionReason(normalized);
+		return ApplicationResponse.from(applicationRepository.save(application));
+	}
+
+	@Transactional
 	public void delete(UUID userId, UUID applicationId) {
 		Application application = findOwnedApplication(userId, applicationId);
 		applicationRepository.delete(application);

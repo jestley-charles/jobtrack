@@ -3,6 +3,7 @@ package com.jobtrack.controller;
 import com.jobtrack.dto.ApplicationResponse;
 import com.jobtrack.dto.CreateApplicationRequest;
 import com.jobtrack.dto.PatchApplicationStatusRequest;
+import com.jobtrack.dto.PatchRejectionReasonRequest;
 import com.jobtrack.dto.UpdateApplicationRequest;
 import com.jobtrack.security.AuthContext;
 import com.jobtrack.service.ApplicationService;
@@ -70,6 +71,16 @@ public class ApplicationController {
 			HttpServletRequest request) {
 		UUID userId = AuthContext.getUserId(request);
 		return applicationService.updateStatus(userId, id, body.getStatus());
+	}
+
+	@PatchMapping("/{id}/rejection-reason")
+	public ApplicationResponse updateRejectionReason(
+			@PathVariable UUID id,
+			@RequestBody PatchRejectionReasonRequest body,
+			HttpServletRequest request) {
+		UUID userId = AuthContext.getUserId(request);
+		String reason = body != null ? body.getRejectionReason() : null;
+		return applicationService.updateRejectionReason(userId, id, reason);
 	}
 
 	@DeleteMapping("/{id}")

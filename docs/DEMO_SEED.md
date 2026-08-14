@@ -114,10 +114,13 @@ The script is **idempotent**: each run deletes that user’s existing applicatio
 ## 3. Verify
 
 1. Log in as `demo@jobtrack.com` / `jobtrackdemoaccount`.
-2. Dashboard should show non-zero Applications / Interviews / Offers.
+2. Dashboard should show non-zero Applications / Interviews / Offers (stat cards
+   link to Jobs / Interviews / Offers).
 3. Jobs list + Kanban should show companies across Wishlist → Offer / Rejected.
 4. Interviews calendar should show upcoming rounds (mid/late August 2026).
-5. Contacts page should list recruiters and interviewers.
+5. Offers tab should list active offers; Rejected tab should list rejections with
+   sample rejection reasons.
+6. Contacts page redirects to Offers (Contact API still exists; no Contacts UI).
 
 ---
 

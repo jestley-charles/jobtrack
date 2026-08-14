@@ -139,6 +139,30 @@ class ApplicationServiceTest {
 	}
 
 	@Test
+	void updateRejectionReasonStoresTrimmedValue() {
+		when(applicationRepository.findByIdAndUserId(APP_ID, USER_ID)).thenReturn(Optional.of(sampleApplication));
+		when(applicationRepository.save(sampleApplication)).thenReturn(sampleApplication);
+
+		ApplicationResponse response = applicationService.updateRejectionReason(
+				USER_ID, APP_ID, "  Weak system design round  ");
+
+		assertEquals("Weak system design round", response.rejectionReason());
+		assertEquals("Weak system design round", sampleApplication.getRejectionReason());
+	}
+
+	@Test
+	void updateRejectionReasonClearsBlankValue() {
+		sampleApplication.setRejectionReason("Old reason");
+		when(applicationRepository.findByIdAndUserId(APP_ID, USER_ID)).thenReturn(Optional.of(sampleApplication));
+		when(applicationRepository.save(sampleApplication)).thenReturn(sampleApplication);
+
+		ApplicationResponse response = applicationService.updateRejectionReason(USER_ID, APP_ID, "   ");
+
+		assertEquals(null, response.rejectionReason());
+		assertEquals(null, sampleApplication.getRejectionReason());
+	}
+
+	@Test
 	void updateStatusThrowsWhenNotFound() {
 		when(applicationRepository.findByIdAndUserId(APP_ID, USER_ID)).thenReturn(Optional.empty());
 

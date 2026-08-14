@@ -3,6 +3,7 @@ package com.jobtrack.controller;
 import com.jobtrack.dto.ApplicationResponse;
 import com.jobtrack.dto.CreateApplicationRequest;
 import com.jobtrack.dto.PatchApplicationStatusRequest;
+import com.jobtrack.dto.PatchRejectionReasonRequest;
 import com.jobtrack.dto.UpdateApplicationRequest;
 import com.jobtrack.model.ApplicationStatus;
 import com.jobtrack.security.AuthContext;
@@ -129,7 +130,7 @@ class ApplicationControllerTest {
 		ApplicationResponse updated = new ApplicationResponse(
 				APP_ID, USER_ID, "Google", "Staff Engineer", "Remote",
 				90_000, 120_000, ApplicationStatus.Interview, LocalDate.of(2026, 8, 12),
-				"https://careers.google.com/jobs/123",
+				"https://careers.google.com/jobs/123", null,
 				Instant.parse("2026-08-12T10:00:00Z"), Instant.parse("2026-08-12T11:00:00Z"));
 
 		when(applicationService.update(eq(USER_ID), eq(APP_ID), any(UpdateApplicationRequest.class)))
@@ -152,7 +153,7 @@ class ApplicationControllerTest {
 		ApplicationResponse updated = new ApplicationResponse(
 				APP_ID, USER_ID, "Google", "Software Engineer", "Remote",
 				90_000, 120_000, ApplicationStatus.Offer, LocalDate.of(2026, 8, 12),
-				"https://careers.google.com/jobs/123",
+				"https://careers.google.com/jobs/123", null,
 				Instant.parse("2026-08-12T10:00:00Z"), Instant.parse("2026-08-12T11:00:00Z"));
 
 		when(applicationService.updateStatus(USER_ID, APP_ID, ApplicationStatus.Offer)).thenReturn(updated);
@@ -172,6 +173,28 @@ class ApplicationControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("{}"))
 				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void patchRejectionReasonReturnsUpdatedApplication() throws Exception {
+		PatchRejectionReasonRequest request = new PatchRejectionReasonRequest();
+		request.setRejectionReason("Weak system design");
+
+		ApplicationResponse updated = new ApplicationResponse(
+				APP_ID, USER_ID, "Google", "Software Engineer", "Remote",
+				90_000, 120_000, ApplicationStatus.Rejected, LocalDate.of(2026, 8, 12),
+				"https://careers.google.com/jobs/123", "Weak system design",
+				Instant.parse("2026-08-12T10:00:00Z"), Instant.parse("2026-08-12T11:00:00Z"));
+
+		when(applicationService.updateRejectionReason(USER_ID, APP_ID, "Weak system design"))
+				.thenReturn(updated);
+
+		mockMvc.perform(patch("/api/applications/{id}/rejection-reason", APP_ID)
+				.requestAttr(AuthContext.USER_ID_ATTRIBUTE, USER_ID)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(jsonMapper.writeValueAsString(request)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.rejectionReason").value("Weak system design"));
 	}
 
 	@Test
@@ -195,6 +218,7 @@ class ApplicationControllerTest {
 				ApplicationStatus.Applied,
 				LocalDate.of(2026, 8, 12),
 				"https://careers.google.com/jobs/123",
+				null,
 				Instant.parse("2026-08-12T10:00:00Z"),
 				Instant.parse("2026-08-12T10:00:00Z"));
 	}

@@ -18,6 +18,7 @@ public record ApplicationResponse(
 		ApplicationStatus status,
 		LocalDate dateApplied,
 		String jobUrl,
+		String rejectionReason,
 		Instant createdAt,
 		Instant updatedAt) {
 
@@ -33,6 +34,7 @@ public record ApplicationResponse(
 				application.getStatus(),
 				application.getDateApplied(),
 				application.getJobUrl(),
+				application.getRejectionReason(),
 				application.getCreatedAt(),
 				application.getUpdatedAt());
 	}
