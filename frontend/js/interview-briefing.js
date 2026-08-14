@@ -462,4 +462,6 @@
     isEnabled: isBriefingEnabled,
     setEnabled: setBriefingEnabled,
   };
+
+  window.addEventListener('pagehide', close);
 })();

@@ -692,6 +692,41 @@ a:hover {
   width: 100%;
 }
 
+.btn-refresh {
+  gap: 0.4rem;
+}
+
+.btn-refresh-icon {
+  display: none;
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .btn-refresh {
+    padding-left: 0.65rem;
+    padding-right: 0.65rem;
+    min-width: 2.75rem;
+  }
+
+  .btn-refresh-icon {
+    display: block;
+  }
+
+  .btn-refresh-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
 /* Authenticated app shell */
 .visually-hidden {
   position: absolute;

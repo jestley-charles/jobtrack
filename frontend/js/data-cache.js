@@ -318,7 +318,10 @@
     loadPromise = null;
     memory = null;
     clearStore();
-    return fetchAll(userId);
+    loadPromise = fetchAll(userId).finally(function () {
+      loadPromise = null;
+    });
+    return loadPromise;
   }
 
   async function refreshApplications() {

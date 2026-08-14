@@ -48,7 +48,12 @@
               <button type="button" class="jobs-view-btn jobs-view-btn--active" id="jobs-view-list" data-view="list" aria-pressed="true">List</button>
               <button type="button" class="jobs-view-btn" id="jobs-view-board" data-view="board" aria-pressed="false">Board</button>
             </div>
-            <button type="button" class="btn btn-secondary" id="jobs-refresh-btn">Refresh</button>
+            <button type="button" class="btn btn-secondary btn-refresh" id="jobs-refresh-btn" aria-label="Refresh">
+              <svg class="btn-refresh-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/>
+              </svg>
+              <span class="btn-refresh-label">Refresh</span>
+            </button>
             <button type="button" class="btn btn-primary" id="add-application-btn">Add application</button>
           </div>
         </header>

@@ -903,7 +903,11 @@
       true
     );
 
-    window.addEventListener('pagehide', flushPendingStatusSaves);
+    window.addEventListener('pagehide', function () {
+      clearPointerDrag();
+      hideKanbanDragOverview(dragOverviewEl, board, highlightedDropElementRef);
+      flushPendingStatusSaves();
+    });
   }
 
   function renderKanban(applications) {

@@ -55,6 +55,60 @@
     });
   }
 
+  /**
+   * Clear overlays and drag state so bfcache / fast nav doesn't leave the page frozen.
+   */
+  function resetTransientUiState() {
+    document.body.classList.remove('modal-open');
+
+    document.querySelectorAll('.modal:not([hidden])').forEach(function (modal) {
+      modal.hidden = true;
+      modal.setAttribute('aria-hidden', 'true');
+    });
+
+    document.querySelectorAll('.kanban-drag-ghost').forEach(function (ghost) {
+      ghost.remove();
+    });
+
+    var dragOverview = document.getElementById('kanban-drag-overview');
+    if (dragOverview) {
+      dragOverview.hidden = true;
+      dragOverview.setAttribute('aria-hidden', 'true');
+      dragOverview.replaceChildren();
+    }
+
+    document.querySelectorAll('.kanban-board').forEach(function (board) {
+      board.classList.remove('kanban-board--drag-active', 'kanban-board--drag-overview-source');
+    });
+
+    document.querySelectorAll('.kanban-card').forEach(function (card) {
+      card.classList.remove(
+        'kanban-card--dragging',
+        'kanban-card--lifted',
+        'kanban-card--pending-drag'
+      );
+    });
+
+    document.querySelectorAll('[id$="-refresh-btn"]').forEach(function (btn) {
+      btn.disabled = false;
+    });
+
+    if (window.JobTrackInterviewBriefing && typeof JobTrackInterviewBriefing.close === 'function') {
+      JobTrackInterviewBriefing.close();
+    }
+  }
+
+  function wirePageLifecycle() {
+    window.addEventListener('pagehide', resetTransientUiState);
+    window.addEventListener('pageshow', function (event) {
+      if (event.persisted) {
+        resetTransientUiState();
+      }
+    });
+  }
+
+  wirePageLifecycle();
+
   function wireUserMenu(userEmailEl, logoutBtn, menuBtn, menuPanel, initialsEl, email) {
     initialsEl.textContent = getInitials(email);
     userEmailEl.textContent = email;
@@ -130,7 +184,9 @@
     wireUserMenu(userEmailEl, logoutBtn, menuBtn, menuPanel, initialsEl, session.user.email);
 
     if (window.JobTrackInterviewBriefing) {
-      JobTrackInterviewBriefing.maybeShow();
+      requestAnimationFrame(function () {
+        JobTrackInterviewBriefing.maybeShow();
+      });
     }
 
     return session;
@@ -139,5 +195,6 @@
   window.JobTrackAppShell = {
     init,
     getInitials,
+    resetTransientUiState,
   };
 })();
