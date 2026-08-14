@@ -203,11 +203,54 @@
     renderList(state.items);
   }
 
+  function isFinePointer() {
+    return window.matchMedia('(pointer: fine)').matches;
+  }
+
+  function createKanbanDragHandle() {
+    const handle = document.createElement('button');
+    handle.type = 'button';
+    handle.className = 'kanban-card-drag-handle';
+    handle.setAttribute('aria-label', 'Drag to move card');
+    handle.draggable = isFinePointer();
+
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('viewBox', '0 0 16 16');
+    icon.setAttribute('aria-hidden', 'true');
+    icon.classList.add('kanban-card-drag-handle-icon');
+
+    const dots = [
+      [5, 4],
+      [11, 4],
+      [5, 8],
+      [11, 8],
+      [5, 12],
+      [11, 12],
+    ];
+    dots.forEach(function (coords) {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', String(coords[0]));
+      circle.setAttribute('cy', String(coords[1]));
+      circle.setAttribute('r', '1.25');
+      icon.appendChild(circle);
+    });
+
+    handle.appendChild(icon);
+    return handle;
+  }
+
+  function getKanbanDragHandle(card) {
+    return card ? card.querySelector('.kanban-card-drag-handle') : null;
+  }
+
   function createKanbanCard(application) {
     const card = document.createElement('article');
     card.className = 'kanban-card';
     card.dataset.applicationId = application.id;
-    card.draggable = window.matchMedia('(pointer: fine)').matches;
+    card.draggable = false;
+
+    const handle = createKanbanDragHandle();
+    card.appendChild(handle);
 
     const link = document.createElement('a');
     link.className = 'kanban-card-link';
@@ -385,7 +428,10 @@
       'kanban-card--lifted',
       'kanban-card--pending-drag'
     );
-    card.draggable = window.matchMedia('(pointer: fine)').matches;
+    const handle = getKanbanDragHandle(card);
+    if (handle) {
+      handle.draggable = isFinePointer();
+    }
   }
 
   function wireKanbanDragAndDrop() {
@@ -441,13 +487,27 @@
         return;
       }
 
-      const card = event.target.closest('.kanban-card');
-      if (!card || !board.contains(card)) {
+      const handle = event.target.closest('.kanban-card-drag-handle');
+      if (!handle || !board.contains(handle)) {
+        event.preventDefault();
+        return;
+      }
+
+      const card = handle.closest('.kanban-card');
+      if (!card) {
+        event.preventDefault();
         return;
       }
 
       draggedId = card.dataset.applicationId;
       dragDidMove = false;
+
+      const cardRect = card.getBoundingClientRect();
+      event.dataTransfer.setDragImage(
+        card,
+        event.clientX - cardRect.left,
+        event.clientY - cardRect.top
+      );
       card.classList.add('kanban-card--dragging');
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', draggedId);
@@ -520,8 +580,13 @@
         return;
       }
 
-      const card = event.target.closest('.kanban-card');
-      if (!card || !board.contains(card)) {
+      const handle = event.target.closest('.kanban-card-drag-handle');
+      if (!handle || !board.contains(handle)) {
+        return;
+      }
+
+      const card = handle.closest('.kanban-card');
+      if (!card) {
         return;
       }
 
@@ -633,7 +698,10 @@
           return;
         }
         suppressClick = false;
-        if (event.target.closest('.kanban-card-link')) {
+        if (
+          event.target.closest('.kanban-card-link') ||
+          event.target.closest('.kanban-card-drag-handle')
+        ) {
           event.preventDefault();
           event.stopPropagation();
         }
