@@ -57,6 +57,8 @@
             </div>
           </header>
 
+          <p class="dashboard-message dashboard-message--error" id="application-action-error" hidden></p>
+
           <div class="application-detail-grid">
             <section class="application-detail-card" aria-labelledby="application-info-heading">
               <h2 id="application-info-heading">Details</h2>
@@ -69,6 +71,7 @@
                 <button type="button" class="btn btn-secondary btn-sm" id="add-interview-btn">Add interview</button>
               </div>
               <p class="dashboard-message" id="interviews-loading" hidden>Loading interviews…</p>
+              <p class="dashboard-message dashboard-message--error" id="interviews-section-error" hidden></p>
               <p class="application-detail-empty" id="interviews-empty" hidden>No interviews scheduled for this application yet.</p>
               <ul class="interview-list" id="interview-list" hidden></ul>
             </section>

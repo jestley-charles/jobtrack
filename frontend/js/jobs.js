@@ -512,6 +512,15 @@
       showApplicationsResult(data.applications, { resetPage: force });
     } catch (err) {
       loadingEl.hidden = true;
+      if (JobTrackDataCache.hasData()) {
+        const data = JobTrackDataCache.peek();
+        showApplicationsResult(data.applications);
+      } else {
+        emptyEl.hidden = true;
+        listEl.hidden = true;
+        boardEl.hidden = true;
+        countEl.hidden = true;
+      }
       errorEl.textContent = err.message || 'Something went wrong loading applications.';
       errorEl.hidden = false;
     } finally {

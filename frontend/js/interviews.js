@@ -352,19 +352,33 @@
   }
 
   function openAddInterview() {
+    const errorEl = document.getElementById('interviews-error');
     if (!applicationsCache.length) {
-      alert('Add an application first, then schedule an interview for it.');
+      errorEl.textContent =
+        'Add an application first, then schedule an interview for it.';
+      errorEl.hidden = false;
       return;
     }
+    errorEl.hidden = true;
+    errorEl.textContent = '';
     JobTrackInterviewForm.openForCreate({
       defaultDate: defaultDateForSelectedDay(),
     });
+  }
+
+  function updateGlobalEmpty(interviews) {
+    const emptyEl = document.getElementById('interviews-global-empty');
+    if (!emptyEl) {
+      return;
+    }
+    emptyEl.hidden = interviews.length > 0;
   }
 
   function applyLoadedData(applications, interviews, preserveSelection) {
     applicationsCache = applications;
     JobTrackInterviewForm.setApplications(applications);
     interviewsByDate = buildInterviewsByDate(applications, interviews);
+    updateGlobalEmpty(interviews);
 
     if (!preserveSelection || !selectedDateKey) {
       const today = new Date();
@@ -424,7 +438,11 @@
       contentEl.hidden = false;
     } catch (err) {
       loadingEl.hidden = true;
-      if (!JobTrackDataCache.hasData()) {
+      if (JobTrackDataCache.hasData()) {
+        const data = JobTrackDataCache.peek();
+        applyLoadedData(data.applications, data.interviews, true);
+        contentEl.hidden = false;
+      } else {
         contentEl.hidden = true;
       }
       errorEl.textContent = err.message || 'Something went wrong loading interviews.';
@@ -453,6 +471,7 @@
 
     bindToolbar();
     document.getElementById('add-interview-btn').addEventListener('click', openAddInterview);
+    document.getElementById('add-interview-empty-btn').addEventListener('click', openAddInterview);
     document.getElementById('interviews-refresh-btn').addEventListener('click', function () {
       loadInterviews({ preserveSelection: true, force: true });
     });

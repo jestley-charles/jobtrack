@@ -120,7 +120,9 @@
   async function handleSubmit(event) {
     event.preventDefault();
     clearFormErrors();
+    const idleLabel = submitBtn.textContent;
     submitBtn.disabled = true;
+    submitBtn.textContent = editingId ? 'Saving…' : 'Adding…';
 
     try {
       const payload = buildPayload(new FormData(form));
@@ -149,6 +151,7 @@
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;
+      submitBtn.textContent = idleLabel;
     }
   }
 

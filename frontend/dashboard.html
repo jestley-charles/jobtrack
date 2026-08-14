@@ -72,7 +72,11 @@
 
             <section class="dashboard-activity" aria-labelledby="activity-feed-heading">
               <h2 id="activity-feed-heading">Recent activity</h2>
-              <p class="activity-feed-empty" id="activity-empty" hidden>No activity yet. Add an application to get started.</p>
+              <div class="activity-feed-empty" id="activity-empty" hidden>
+                <p class="activity-feed-empty-title">No activity yet</p>
+                <p class="activity-feed-empty-hint">Add an application to start tracking your job search.</p>
+                <a class="btn btn-primary" href="jobs.html">Add application</a>
+              </div>
               <ul class="activity-feed" id="activity-list" hidden></ul>
               <nav class="list-pager" id="activity-pager" aria-label="Recent activity pages" hidden></nav>
             </section>

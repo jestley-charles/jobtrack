@@ -285,8 +285,13 @@
       showOffersResult(data.applications, data.interviews);
     } catch (err) {
       loadingEl.hidden = true;
-      if (!JobTrackDataCache.hasData()) {
+      if (JobTrackDataCache.hasData()) {
+        const data = JobTrackDataCache.peek();
+        showOffersResult(data.applications, data.interviews);
+      } else {
+        emptyEl.hidden = true;
         contentEl.hidden = true;
+        countEl.hidden = true;
       }
       showOffersError(err.message || 'Something went wrong loading offers.');
     } finally {

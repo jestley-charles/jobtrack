@@ -339,17 +339,25 @@ already specified above. Newest at the bottom.)*
   Data (export apps+interviews JSON via cache; clear cache), Session (log out;
   delete account deferred/disabled). No billing, teams, or notifications.
 
+- **2026-08-14:** Responsive polish keeps horizontal kanban (board is the only
+  x-scroll container) and horizontal shell nav ≤768 (tighter padding, no
+  hamburger). Auth single-column and dashboard stats 1-col kick in at 768.
+  Jobs table wrapper uses `overflow-x: auto` above card breakpoint (900).
+  Offers top ribbon repositions by 768. Calendar day min-height increased on
+  phone; HTML5 kanban DnD remains desktop-oriented.
+
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 10 — Polish (in progress)
-**Last updated by:** Agent session 2026-08-14 (assistant QA + Rejected empty fix + Settings)
-**Summary:** Fixed Rejected empty-state CSS override; polished assistant modal
-  (schedule cards, dates, error UI, briefing preference); implemented Settings
-  (Account / Security / Preferences / Data / Session).
+**Last updated by:** Agent session 2026-08-14 (Phase 10 QA polish)
+**Summary:** Completed responsive layout pass, empty states, and loading/error
+  states across all app pages. Force-refresh now restores cached content on
+  failure; application detail interview errors are explicit; forms show
+  Saving…/Adding…; activity + interviews have titled empty panels with CTAs.
 
-Next actionable task: **Phase 10 — Responsive layout pass (mobile/tablet)**.
+Next actionable task: **Phase 10 — README with setup instructions + screenshots**.
 
 ---
 
@@ -368,7 +376,9 @@ the task is finished.)*
 *(Bugs discovered but not yet fixed. Format: short description, where it
 lives, repro steps if known, suspected cause if known.)*
 
-- *(no known issues)*
+- **Kanban HTML5 DnD on touch** — board drag-and-drop is unreliable on mobile/
+  tablets; change status via Edit application instead. No Pointer Events
+  rewrite planned for this polish pass.
 
 **User action after pooler fix:** In the Render dashboard, set backend env vars to the
 Supavisor session pooler (see `docs/RENDER_SETUP.md`) and redeploy. Until then, deployed
@@ -458,9 +468,9 @@ API list calls may still return 500.
 - [x] Fix Rejected empty state (`.rejected-empty[hidden]` CSS)
 - [x] Assistant QA polish (position, last-day list, dates, error, prefs gate)
 - [x] Settings tab (Account, Security, Preferences, Data, Session)
-- [ ] Responsive layout pass (mobile/tablet)
-- [ ] Empty states (no applications yet, etc.)
-- [ ] Loading/error states on all fetch calls
+- [x] Responsive layout pass (mobile/tablet)
+- [x] Empty states (no applications yet, etc.)
+- [x] Loading/error states on all fetch calls
 - [ ] README with setup instructions + screenshots
 
 ---
@@ -645,3 +655,12 @@ short — this is a log, not a diary.)*
   CSS polish (tokens, scroll, mobile order). Settings page: Account, password
   change, Jobs view + briefing prefs, JSON export, clear cache, logout;
   delete account deferred.
+- **2026-08-14 — Phase 10 polish (responsive / empty / loading-error):** QA
+  matrix + fixes. Force Refresh restores cached UI on failure (dashboard, jobs,
+  interviews, offers, rejected, application detail). Detail interview load
+  errors use `#interviews-section-error` (no longer fake-empty); deletes use
+  inline `#application-action-error`. App/interview forms show Saving…/Adding….
+  Empty panels: dashboard activity + interviews global empty (title/hint/CTA).
+  CSS: shell nav tighter ≤768; stats 1-col ≤768; auth single-col ≤768; table
+  overflow-x; kanban column widths on small screens; calendar tap targets;
+  offers ribbon ≤768; `[hidden]` overrides for flex content panels.

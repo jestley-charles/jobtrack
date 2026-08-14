@@ -247,8 +247,13 @@
       showRejectedResult(data.applications);
     } catch (err) {
       loadingEl.hidden = true;
-      if (!JobTrackDataCache.hasData()) {
+      if (JobTrackDataCache.hasData()) {
+        const data = JobTrackDataCache.peek();
+        showRejectedResult(data.applications);
+      } else {
+        emptyEl.hidden = true;
         contentEl.hidden = true;
+        countEl.hidden = true;
       }
       showRejectedError(err.message || 'Something went wrong loading rejected applications.');
     } finally {

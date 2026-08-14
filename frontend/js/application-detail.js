@@ -223,8 +223,13 @@
     const loadingEl = document.getElementById('interviews-loading');
     const emptyEl = document.getElementById('interviews-empty');
     const listEl = document.getElementById('interview-list');
+    const errorEl = document.getElementById('interviews-section-error');
 
     loadingEl.hidden = true;
+    if (errorEl) {
+      errorEl.hidden = true;
+      errorEl.textContent = '';
+    }
 
     if (!interviews.length) {
       emptyEl.hidden = false;
@@ -242,6 +247,32 @@
     });
   }
 
+  function showInterviewsSectionError(message) {
+    const loadingEl = document.getElementById('interviews-loading');
+    const emptyEl = document.getElementById('interviews-empty');
+    const listEl = document.getElementById('interview-list');
+    const errorEl = document.getElementById('interviews-section-error');
+
+    loadingEl.hidden = true;
+    emptyEl.hidden = true;
+    listEl.hidden = true;
+    listEl.replaceChildren();
+    errorEl.textContent = message;
+    errorEl.hidden = false;
+  }
+
+  function showInlineActionError(message) {
+    const errorEl = document.getElementById('application-action-error');
+    errorEl.textContent = message;
+    errorEl.hidden = false;
+  }
+
+  function hideInlineActionError() {
+    const errorEl = document.getElementById('application-action-error');
+    errorEl.hidden = true;
+    errorEl.textContent = '';
+  }
+
   function interviewsForApplication(applicationId) {
     const allInterviews = JobTrackDataCache.getInterviews() || [];
     return allInterviews.filter(function (interview) {
@@ -252,10 +283,15 @@
   async function loadInterviews(applicationId, options) {
     const force = Boolean(options && options.force);
     const loadingEl = document.getElementById('interviews-loading');
+    const errorEl = document.getElementById('interviews-section-error');
     const hadCache = JobTrackDataCache.hasData();
 
     if (!hadCache || force) {
       loadingEl.hidden = false;
+    }
+    if (errorEl) {
+      errorEl.hidden = true;
+      errorEl.textContent = '';
     }
 
     try {
@@ -267,7 +303,16 @@
       renderInterviews(interviewsForApplication(applicationId));
     } catch (err) {
       loadingEl.hidden = true;
-      renderInterviews([]);
+      if (hadCache || JobTrackDataCache.hasData()) {
+        renderInterviews(interviewsForApplication(applicationId));
+        showInlineActionError(
+          err.message || 'Could not refresh interviews. Showing cached data.'
+        );
+      } else {
+        showInterviewsSectionError(
+          err.message || 'Something went wrong loading interviews.'
+        );
+      }
     }
   }
 
@@ -279,6 +324,8 @@
     if (!confirmed) {
       return;
     }
+
+    hideInlineActionError();
 
     try {
       const response = await JobTrackApi.fetch('/api/interviews/' + interview.id, {
@@ -294,7 +341,7 @@
         renderInterviews(interviewsForApplication(currentApplication.id));
       }
     } catch (err) {
-      alert(err.message || 'Something went wrong.');
+      showInlineActionError(err.message || 'Something went wrong.');
     }
   }
 
@@ -340,6 +387,7 @@
       contentEl.hidden = true;
     }
     errorEl.hidden = true;
+    hideInlineActionError();
 
     if (refreshBtn) {
       refreshBtn.disabled = true;
@@ -366,7 +414,14 @@
       loadingEl.hidden = true;
       contentEl.hidden = false;
     } catch (err) {
-      showError(err.message || 'Something went wrong loading this application.');
+      loadingEl.hidden = true;
+      if (JobTrackDataCache.hasData() && paintApplication(applicationId)) {
+        errorEl.textContent =
+          err.message || 'Could not refresh. Showing cached data.';
+        errorEl.hidden = false;
+      } else {
+        showError(err.message || 'Something went wrong loading this application.');
+      }
     } finally {
       if (refreshBtn) {
         refreshBtn.disabled = false;
@@ -386,6 +441,7 @@
       return;
     }
 
+    hideInlineActionError();
     const deleteBtn = document.getElementById('delete-application-btn');
     deleteBtn.disabled = true;
 
@@ -403,7 +459,7 @@
       window.location.href = 'jobs.html';
     } catch (err) {
       deleteBtn.disabled = false;
-      alert(err.message || 'Something went wrong.');
+      showInlineActionError(err.message || 'Something went wrong.');
     }
   }
 

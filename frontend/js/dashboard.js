@@ -282,7 +282,9 @@
       contentEl.hidden = false;
     } catch (err) {
       loadingEl.hidden = true;
-      if (!JobTrackDataCache.hasData()) {
+      if (JobTrackDataCache.hasData()) {
+        paintFromCache();
+      } else {
         contentEl.hidden = true;
       }
       errorEl.textContent = err.message || 'Something went wrong loading your stats.';

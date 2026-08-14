@@ -219,6 +219,8 @@
     }
 
     submitBtn.disabled = true;
+    const idleLabel = submitBtn.textContent;
+    submitBtn.textContent = editingId ? 'Saving…' : 'Adding…';
 
     try {
       const payload = buildPayload(formData, isCreate);
@@ -249,6 +251,7 @@
       errorEl.hidden = false;
     } finally {
       submitBtn.disabled = false;
+      submitBtn.textContent = idleLabel;
     }
   }
 
