@@ -4,11 +4,35 @@
  */
 (function () {
   const FLAG_KEY = 'jobtrack.interviewBriefing.pending';
+  const ENABLED_KEY = 'jobtrack.briefing.enabled';
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
   let modalEl = null;
   let previouslyFocused = null;
 
+  function isBriefingEnabled() {
+    try {
+      const stored = window.localStorage.getItem(ENABLED_KEY);
+      if (stored === null) {
+        return true;
+      }
+      return stored !== '0' && stored !== 'false';
+    } catch (err) {
+      return true;
+    }
+  }
+
+  function setBriefingEnabled(enabled) {
+    try {
+      window.localStorage.setItem(ENABLED_KEY, enabled ? '1' : '0');
+    } catch (err) {
+      // ignore storage errors
+    }
+  }
+
   function markPending() {
+    if (!isBriefingEnabled()) {
+      return;
+    }
     try {
       window.sessionStorage.setItem(FLAG_KEY, '1');
     } catch (err) {
@@ -46,6 +70,17 @@
     });
   }
 
+  function formatShortDate(dateKey) {
+    const date = new Date(dateKey + 'T12:00:00');
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
   function dayDiff(dateKey, todayKey) {
     const target = new Date(dateKey + 'T12:00:00');
     const today = new Date(todayKey + 'T12:00:00');
@@ -54,19 +89,24 @@
 
   function formatRelativeDay(dateKey, todayKey) {
     const days = dayDiff(dateKey, todayKey);
+    let relative;
     if (days === 0) {
-      return 'Today';
+      relative = 'Today';
+    } else if (days === -1) {
+      relative = 'Yesterday';
+    } else if (days === 1) {
+      relative = 'Tomorrow';
+    } else if (days < 0) {
+      relative = Math.abs(days) + ' days ago';
+    } else {
+      relative = 'in ' + days + ' days';
     }
-    if (days === -1) {
-      return 'Yesterday';
+
+    const shortDate = formatShortDate(dateKey);
+    if (!shortDate || days === 0) {
+      return relative;
     }
-    if (days === 1) {
-      return 'Tomorrow';
-    }
-    if (days < 0) {
-      return Math.abs(days) + ' days ago';
-    }
-    return 'in ' + days + ' days';
+    return relative + ' · ' + shortDate;
   }
 
   function normalizeInterviewType(value) {
@@ -123,7 +163,14 @@
       return item.dateKey > todayKey;
     });
 
-    const last = past.length ? past[past.length - 1] : null;
+    let lastItems = [];
+    if (past.length) {
+      const lastDay = past[past.length - 1].dateKey;
+      lastItems = past.filter(function (item) {
+        return item.dateKey === lastDay;
+      });
+    }
+
     let nextItems = [];
     if (future.length) {
       const nextDay = future[0].dateKey;
@@ -134,7 +181,7 @@
 
     return {
       todayKey: todayKey,
-      last: last,
+      last: lastItems,
       today: today,
       next: nextItems,
     };
@@ -165,13 +212,21 @@
     const company = document.createElement('span');
     company.className = 'briefing-interview-company';
     company.textContent = item.company;
+    body.appendChild(company);
+
+    if (item.position) {
+      const position = document.createElement('span');
+      position.className = 'briefing-interview-position';
+      position.textContent = item.position;
+      body.appendChild(position);
+    }
 
     const typeEl = document.createElement('span');
     typeEl.className = 'briefing-interview-type';
     typeEl.textContent = item.interviewType;
-
-    body.appendChild(company);
+    typeEl.title = item.interviewType;
     body.appendChild(typeEl);
+
     row.appendChild(timeEl);
     row.appendChild(body);
     return row;
@@ -220,7 +275,7 @@
     modalEl.setAttribute('aria-hidden', 'true');
     modalEl.innerHTML =
       '<div class="modal-backdrop" data-briefing-close tabindex="-1"></div>' +
-      '<div class="modal-dialog briefing-dialog" role="dialog" aria-modal="true" aria-labelledby="briefing-title">' +
+      '<div class="modal-dialog briefing-dialog" role="dialog" aria-modal="true" aria-labelledby="briefing-title" aria-describedby="briefing-lead">' +
       '  <header class="modal-header briefing-header">' +
       '    <div class="briefing-header-text">' +
       '      <p class="briefing-kicker">JobTrack assistant</p>' +
@@ -268,11 +323,15 @@
     const loadingEl = document.getElementById('briefing-loading');
     const columnsEl = document.getElementById('briefing-columns');
     const leadEl = document.getElementById('briefing-lead');
+    const dialog = modalEl ? modalEl.querySelector('.briefing-dialog') : null;
     if (loadingEl) {
       loadingEl.hidden = !isLoading;
     }
     if (columnsEl) {
       columnsEl.hidden = isLoading;
+    }
+    if (dialog) {
+      dialog.setAttribute('aria-busy', isLoading ? 'true' : 'false');
     }
     if (leadEl && isLoading) {
       leadEl.textContent = 'Pulling up your last interview, today’s plan, and what’s next…';
@@ -304,13 +363,31 @@
     previouslyFocused = null;
   }
 
+  function renderError(message) {
+    ensureModal();
+    setLoading(false);
+    const lead = document.getElementById('briefing-lead');
+    const columnsEl = document.getElementById('briefing-columns');
+    if (lead) {
+      lead.textContent = message || 'Couldn’t load your schedule. Try again after opening the calendar.';
+    }
+    if (columnsEl) {
+      columnsEl.hidden = true;
+    }
+  }
+
   function render(schedule) {
     ensureModal();
     setLoading(false);
     const lead = document.getElementById('briefing-lead');
+    const columnsEl = document.getElementById('briefing-columns');
+    if (columnsEl) {
+      columnsEl.hidden = false;
+    }
+
     const hasToday = schedule.today.length > 0;
     const hasNext = schedule.next.length > 0;
-    const hasLast = Boolean(schedule.last);
+    const hasLast = schedule.last.length > 0;
 
     if (hasToday) {
       lead.textContent =
@@ -328,16 +405,16 @@
 
     fillColumn(document.getElementById('briefing-last'), {
       label: 'Last time',
-      sublabel: schedule.last
-        ? formatRelativeDay(schedule.last.dateKey, schedule.todayKey)
+      sublabel: schedule.last.length
+        ? formatRelativeDay(schedule.last[0].dateKey, schedule.todayKey)
         : null,
-      items: schedule.last ? [schedule.last] : [],
+      items: schedule.last,
       emptyText: 'No past interviews',
     });
 
     fillColumn(document.getElementById('briefing-today'), {
       label: 'Today',
-      sublabel: formatRelativeDay(schedule.todayKey, schedule.todayKey),
+      sublabel: null,
       items: schedule.today,
       emptyText: 'Clear day',
     });
@@ -353,10 +430,13 @@
   }
 
   async function maybeShow() {
-    if (!consumePending()) {
+    if (!window.JobTrackDataCache) {
       return false;
     }
-    if (!window.JobTrackDataCache) {
+    if (!isBriefingEnabled()) {
+      return false;
+    }
+    if (!consumePending()) {
       return false;
     }
 
@@ -370,8 +450,7 @@
       render(schedule);
       return true;
     } catch (err) {
-      // Login briefing is best-effort — don't leave a stuck loading modal.
-      close();
+      renderError('Couldn’t load your schedule. Open the calendar or try again after refresh.');
       return false;
     }
   }
@@ -380,5 +459,7 @@
     markPending: markPending,
     maybeShow: maybeShow,
     close: close,
+    isEnabled: isBriefingEnabled,
+    setEnabled: setBriefingEnabled,
   };
 })();

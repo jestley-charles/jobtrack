@@ -333,15 +333,21 @@ already specified above. Newest at the bottom.)*
   `PATCH /api/applications/{id}/rejection-reason` (`PatchRejectionReasonRequest`).
   Field is not wiped by create/update/status PATCH — only the dedicated endpoint
   writes it. Demo seed includes sample reasons for Rejected apps.
+- **2026-08-14:** Settings is a client-only SaaS page (no new Spring APIs): Account
+  (email / member since), Security (`supabase.auth.updateUser` password),
+  Preferences (`localStorage` `jobtrack.jobsView` + `jobtrack.briefing.enabled`),
+  Data (export apps+interviews JSON via cache; clear cache), Session (log out;
+  delete account deferred/disabled). No billing, teams, or notifications.
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 10 — Polish (in progress)
-**Last updated by:** Agent session 2026-08-14 (assistant fixes + Rejected tab)
-**Summary:** Assistant loading/schedule-card fixes, dashboard stat → tab links,
-  and new Rejected tab with rejection-reason notes (API + UI + seed).
+**Last updated by:** Agent session 2026-08-14 (assistant QA + Rejected empty fix + Settings)
+**Summary:** Fixed Rejected empty-state CSS override; polished assistant modal
+  (schedule cards, dates, error UI, briefing preference); implemented Settings
+  (Account / Security / Preferences / Data / Session).
 
 Next actionable task: **Phase 10 — Responsive layout pass (mobile/tablet)**.
 
@@ -449,6 +455,9 @@ API list calls may still return 500.
 - [x] Assistant loading state + schedule card polish (type, relative days, clickable)
 - [x] Dashboard stat cards navigate to Jobs / Interviews / Offers tabs
 - [x] Rejected tab with rejection-reason notes
+- [x] Fix Rejected empty state (`.rejected-empty[hidden]` CSS)
+- [x] Assistant QA polish (position, last-day list, dates, error, prefs gate)
+- [x] Settings tab (Account, Security, Preferences, Data, Session)
 - [ ] Responsive layout pass (mobile/tablet)
 - [ ] Empty states (no applications yet, etc.)
 - [ ] Loading/error states on all fetch calls
@@ -628,3 +637,11 @@ short — this is a log, not a diary.)*
   application detail. Dashboard stat cards link to Jobs/Interviews/Offers.
   New Rejected tab (`rejected.html`) with `rejection_reason` notes —
   Flyway V2 + `PATCH .../rejection-reason`; demo seed sample reasons.
+- **2026-08-14 — fix + implement:** Rejected empty panel stayed visible because
+  `.rejected-empty { display: flex }` overrode `hidden` — added
+  `.rejected-empty[hidden]`. Assistant QA: position on rows, last-day mirrors
+  next-day, relative+short dates, no Today sublabel, cache-before-consume,
+  load error stays in modal, briefing enable pref (`jobtrack.briefing.enabled`),
+  CSS polish (tokens, scroll, mobile order). Settings page: Account, password
+  change, Jobs view + briefing prefs, JSON export, clear cache, logout;
+  delete account deferred.

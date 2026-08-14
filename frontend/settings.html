@@ -39,11 +39,128 @@
       <main class="app-main">
         <header class="app-page-header">
           <h1>Settings</h1>
-          <p class="app-page-lead">Account preferences and profile.</p>
+          <p class="app-page-lead">Manage your workspace, security, and local preferences.</p>
         </header>
-        <p class="app-placeholder">
-          Account settings will be added in a later phase.
-        </p>
+
+        <div class="settings-stack">
+          <section class="settings-section" aria-labelledby="settings-account-heading">
+            <header class="settings-section-header">
+              <h2 id="settings-account-heading">Account</h2>
+              <p class="settings-section-lead">Your JobTrack workspace identity.</p>
+            </header>
+            <dl class="detail-list" id="settings-account-details">
+              <div class="detail-list-item">
+                <dt>Email</dt>
+                <dd id="settings-email">—</dd>
+              </div>
+              <div class="detail-list-item">
+                <dt>Member since</dt>
+                <dd id="settings-member-since">—</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="settings-section" aria-labelledby="settings-security-heading">
+            <header class="settings-section-header">
+              <h2 id="settings-security-heading">Security</h2>
+              <p class="settings-section-lead">Update your password while signed in.</p>
+            </header>
+            <form id="settings-password-form" class="settings-form" novalidate>
+              <div class="form-field">
+                <label for="settings-password-new">New password</label>
+                <input type="password" id="settings-password-new" name="password" autocomplete="new-password" minlength="6" required>
+              </div>
+              <div class="form-field">
+                <label for="settings-password-confirm">Confirm password</label>
+                <input type="password" id="settings-password-confirm" name="passwordConfirm" autocomplete="new-password" minlength="6" required>
+              </div>
+              <p id="settings-password-error" class="form-message form-message--error" hidden></p>
+              <p id="settings-password-success" class="form-message form-message--success" hidden></p>
+              <div class="settings-actions">
+                <button type="submit" class="btn btn-primary" id="settings-password-submit">Update password</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="settings-section" aria-labelledby="settings-prefs-heading">
+            <header class="settings-section-header">
+              <h2 id="settings-prefs-heading">Preferences</h2>
+              <p class="settings-section-lead">Stored on this device only.</p>
+            </header>
+            <div class="settings-pref-list">
+              <div class="settings-pref">
+                <div class="settings-pref-copy">
+                  <label class="settings-pref-label" for="settings-jobs-view">Default Jobs view</label>
+                  <p class="settings-pref-hint">List or board when you open Jobs.</p>
+                </div>
+                <select id="settings-jobs-view" class="settings-select">
+                  <option value="list">List</option>
+                  <option value="board">Board</option>
+                </select>
+              </div>
+              <div class="settings-pref">
+                <div class="settings-pref-copy">
+                  <label class="settings-pref-label" for="settings-briefing-enabled">Interview briefing after login</label>
+                  <p class="settings-pref-hint" id="settings-briefing-hint">Show last / today / next when you sign in.</p>
+                </div>
+                <label class="settings-toggle">
+                  <input type="checkbox" id="settings-briefing-enabled" checked>
+                  <span class="settings-toggle-ui" aria-hidden="true"></span>
+                  <span class="visually-hidden">Enable interview briefing after login</span>
+                </label>
+              </div>
+            </div>
+            <p id="settings-prefs-saved" class="form-message form-message--success" hidden>Preferences saved.</p>
+          </section>
+
+          <section class="settings-section" aria-labelledby="settings-data-heading">
+            <header class="settings-section-header">
+              <h2 id="settings-data-heading">Data &amp; privacy</h2>
+              <p class="settings-section-lead">Export your job search data or clear this browser’s cache.</p>
+            </header>
+            <div class="settings-action-rows">
+              <div class="settings-action-row">
+                <div>
+                  <p class="settings-action-title">Export my data</p>
+                  <p class="settings-action-hint">Download applications and interviews as JSON.</p>
+                </div>
+                <button type="button" class="btn btn-secondary" id="settings-export-btn">Export JSON</button>
+              </div>
+              <div class="settings-action-row">
+                <div>
+                  <p class="settings-action-title">Clear local cache</p>
+                  <p class="settings-action-hint">Removes cached lists from this browser. Data on the server is unchanged.</p>
+                </div>
+                <button type="button" class="btn btn-secondary" id="settings-clear-cache-btn">Clear cache</button>
+              </div>
+            </div>
+            <p id="settings-data-message" class="form-message form-message--success" hidden></p>
+            <p id="settings-data-error" class="form-message form-message--error" hidden></p>
+          </section>
+
+          <section class="settings-section settings-section--danger" aria-labelledby="settings-session-heading">
+            <header class="settings-section-header">
+              <h2 id="settings-session-heading">Session</h2>
+              <p class="settings-section-lead">Sign out of this device or request account removal.</p>
+            </header>
+            <div class="settings-action-rows">
+              <div class="settings-action-row">
+                <div>
+                  <p class="settings-action-title">Log out</p>
+                  <p class="settings-action-hint">End your session on this browser.</p>
+                </div>
+                <button type="button" class="btn btn-secondary" id="settings-logout-btn">Log out</button>
+              </div>
+              <div class="settings-action-row">
+                <div>
+                  <p class="settings-action-title">Delete account</p>
+                  <p class="settings-action-hint">Not available yet — contact support if you need your workspace removed.</p>
+                </div>
+                <button type="button" class="btn btn-danger" id="settings-delete-btn" disabled title="Account deletion is not available yet">Delete account</button>
+              </div>
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   </div>

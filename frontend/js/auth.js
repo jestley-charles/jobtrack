@@ -96,6 +96,22 @@
     }
   }
 
+  async function getUser() {
+    const { data, error } = await getClient().auth.getUser();
+    if (error) {
+      throw new Error(formatAuthError(error));
+    }
+    return data.user;
+  }
+
+  async function updatePassword(newPassword) {
+    const { data, error } = await getClient().auth.updateUser({ password: newPassword });
+    if (error) {
+      throw new Error(formatAuthError(error));
+    }
+    return data;
+  }
+
   /**
    * Redirect to login if there is no active session.
    * Uses getUser() so stale cached sessions are not treated as logged in.
@@ -154,9 +170,12 @@
     signIn,
     signOut,
     getSession,
+    getUser,
     getAccessToken,
     hasValidUser,
+    updatePassword,
     clearLocalSession,
+    clearDataCache,
     requireAuth,
     redirectIfAuthenticated,
     handleSessionExpired,
