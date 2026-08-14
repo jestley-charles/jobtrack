@@ -105,4 +105,19 @@ public class CreateApplicationRequest {
 		return salaryMin <= salaryMax;
 	}
 
+	@JsonIgnore
+	@AssertTrue(message = "jobUrl must be an http or https URL")
+	public boolean isJobUrlValid() {
+		return isHttpOrHttpsUrl(jobUrl);
+	}
+
+	static boolean isHttpOrHttpsUrl(String value) {
+		if (value == null || value.isBlank()) {
+			return true;
+		}
+		String trimmed = value.trim();
+		return trimmed.regionMatches(true, 0, "http://", 0, 7)
+				|| trimmed.regionMatches(true, 0, "https://", 0, 8);
+	}
+
 }

@@ -86,7 +86,7 @@
     const menuPanel = document.getElementById('user-menu');
     const initialsEl = document.getElementById('user-initials');
 
-    const session = await JobTrackAuth.requireAuth(window.location.pathname.split('/').pop());
+    const session = await JobTrackAuth.requireAuth(JobTrackAuth.getReturnPath());
     if (!session) {
       return null;
     }

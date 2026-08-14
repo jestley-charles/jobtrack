@@ -13,6 +13,24 @@
     return path || 'index.html';
   }
 
+  /**
+   * Path (+ safe query) to return to after login. Keeps application detail ?id=.
+   */
+  function getReturnPath() {
+    var page = getCurrentPageName();
+    if (page === 'application' || page === 'application.html') {
+      var id = new URLSearchParams(window.location.search).get('id');
+      if (id) {
+        return 'application.html?id=' + encodeURIComponent(id);
+      }
+      return 'jobs.html';
+    }
+    if (page === 'login' || page === 'login.html' || page === 'signup' || page === 'signup.html') {
+      return 'dashboard.html';
+    }
+    return page || 'dashboard.html';
+  }
+
   function isLoginPage() {
     var page = getCurrentPageName();
     return page === 'login' || page === 'login.html';
@@ -121,7 +139,7 @@
     const valid = await hasValidUser();
     if (!valid) {
       await clearLocalSession();
-      const next = redirectTo || getCurrentPageName() || 'dashboard.html';
+      const next = redirectTo || getReturnPath() || 'dashboard.html';
       window.location.replace('login.html?redirect=' + encodeURIComponent(next));
       return null;
     }
@@ -159,7 +177,7 @@
     }
     handlingSessionExpired = true;
     await clearLocalSession();
-    const next = redirectTo || getCurrentPageName() || 'dashboard.html';
+    const next = redirectTo || getReturnPath() || 'dashboard.html';
     window.location.replace(
       'login.html?redirect=' + encodeURIComponent(next) + '&expired=1'
     );
@@ -179,6 +197,7 @@
     requireAuth,
     redirectIfAuthenticated,
     handleSessionExpired,
+    getReturnPath,
     formatAuthError,
   };
 })();

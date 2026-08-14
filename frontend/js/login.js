@@ -4,11 +4,47 @@
   const submitBtn = document.getElementById('submit-btn');
 
   const params = new URLSearchParams(window.location.search);
+  const ALLOWED_REDIRECT_PAGES = {
+    'dashboard.html': true,
+    'jobs.html': true,
+    'interviews.html': true,
+    'offers.html': true,
+    'rejected.html': true,
+    'settings.html': true,
+    'application.html': true,
+  };
+
   function sanitizeRedirect(value) {
-    if (!value || value.includes('://') || value.startsWith('//') || value.includes('..')) {
+    if (!value) {
       return 'dashboard.html';
     }
-    return value;
+
+    var decoded;
+    try {
+      decoded = decodeURIComponent(value);
+    } catch (err) {
+      return 'dashboard.html';
+    }
+
+    // Relative app page only — blocks javascript:, data:, //, absolute URLs, path traversal.
+    if (!/^[A-Za-z0-9._-]+\.html(?:\?[A-Za-z0-9._~%=&-]+)?$/.test(decoded)) {
+      return 'dashboard.html';
+    }
+
+    var page = decoded.split('?')[0];
+    if (!ALLOWED_REDIRECT_PAGES[page]) {
+      return 'dashboard.html';
+    }
+
+    if (page === 'application.html') {
+      var id = new URLSearchParams(decoded.split('?')[1] || '').get('id');
+      if (!id || !/^[0-9a-fA-F-]{36}$/.test(id)) {
+        return 'jobs.html';
+      }
+      return 'application.html?id=' + encodeURIComponent(id);
+    }
+
+    return page;
   }
 
   const redirectTo = sanitizeRedirect(params.get('redirect'));

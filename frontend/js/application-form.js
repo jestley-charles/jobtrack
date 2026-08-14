@@ -16,6 +16,13 @@
     return Number.isNaN(parsed) ? null : parsed;
   }
 
+  function isHttpOrHttpsUrl(value) {
+    if (!value) {
+      return true;
+    }
+    return /^https?:\/\//i.test(value);
+  }
+
   function buildPayload(formData) {
     const payload = {
       company: formData.get('company').trim(),
@@ -30,6 +37,9 @@
 
     const jobUrl = formData.get('jobUrl').trim();
     if (jobUrl) {
+      if (!isHttpOrHttpsUrl(jobUrl)) {
+        throw new Error('Job URL must start with http:// or https://');
+      }
       payload.jobUrl = jobUrl;
     }
 
@@ -127,7 +137,7 @@
     try {
       const payload = buildPayload(new FormData(form));
       const path = editingId
-        ? '/api/applications/' + editingId
+        ? '/api/applications/' + encodeURIComponent(editingId)
         : '/api/applications';
       const method = editingId ? 'PUT' : 'POST';
 
@@ -142,9 +152,19 @@
         return;
       }
 
+      let saved = null;
+      try {
+        saved = await response.json();
+      } catch (parseErr) {
+        saved = null;
+      }
+      if (saved && window.JobTrackDataCache) {
+        JobTrackDataCache.replaceApplication(saved);
+      }
+
       closeModal();
       if (onSavedCallback) {
-        onSavedCallback();
+        onSavedCallback(saved);
       }
     } catch (err) {
       errorEl.textContent = err.message || 'Something went wrong.';

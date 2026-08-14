@@ -228,7 +228,9 @@
         payload.applicationId = applicationId;
       }
 
-      const path = editingId ? '/api/interviews/' + editingId : '/api/interviews';
+      const path = editingId
+        ? '/api/interviews/' + encodeURIComponent(editingId)
+        : '/api/interviews';
       const method = editingId ? 'PUT' : 'POST';
 
       const response = await JobTrackApi.fetch(path, {
@@ -242,9 +244,19 @@
         return;
       }
 
+      let saved = null;
+      try {
+        saved = await response.json();
+      } catch (parseErr) {
+        saved = null;
+      }
+      if (saved && window.JobTrackDataCache) {
+        JobTrackDataCache.replaceInterview(saved);
+      }
+
       closeModal();
       if (onSavedCallback) {
-        onSavedCallback();
+        onSavedCallback(saved);
       }
     } catch (err) {
       errorEl.textContent = err.message || 'Something went wrong.';

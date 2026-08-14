@@ -72,7 +72,10 @@
   async function apiFetch(path, options) {
     const token = await window.JobTrackAuth.getAccessToken();
     if (!token) {
-      throw new Error('Not authenticated');
+      await window.JobTrackAuth.handleSessionExpired(
+        window.JobTrackAuth.getReturnPath()
+      );
+      throw new Error('Session expired. Please log in again.');
     }
 
     const apiUrl = getApiUrl();
@@ -95,7 +98,7 @@
         );
       }
       await window.JobTrackAuth.handleSessionExpired(
-        window.location.pathname.split('/').pop()
+        window.JobTrackAuth.getReturnPath()
       );
       throw new Error('Session expired. Please log in again.');
     }

@@ -105,4 +105,10 @@ public class UpdateApplicationRequest {
 		return salaryMin <= salaryMax;
 	}
 
+	@JsonIgnore
+	@AssertTrue(message = "jobUrl must be an http or https URL")
+	public boolean isJobUrlValid() {
+		return CreateApplicationRequest.isHttpOrHttpsUrl(jobUrl);
+	}
+
 }

@@ -123,7 +123,7 @@
       createDetailItem('Date applied', formatDate(application.dateApplied))
     );
 
-    if (application.jobUrl) {
+    if (application.jobUrl && /^https?:\/\//i.test(application.jobUrl)) {
       const link = document.createElement('a');
       link.href = application.jobUrl;
       link.target = '_blank';

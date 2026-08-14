@@ -143,8 +143,17 @@
   }
 
   function replaceApplication(application) {
-    if (!application || !application.id || !hasMemoryData()) {
+    if (!application || !application.id) {
       return;
+    }
+    if (!memory) {
+      memory = emptyState(null);
+    }
+    if (!Array.isArray(memory.applications)) {
+      memory.applications = [];
+    }
+    if (!Array.isArray(memory.interviews)) {
+      memory.interviews = [];
     }
     var index = memory.applications.findIndex(function (app) {
       return app.id === application.id;
@@ -171,8 +180,17 @@
   }
 
   function replaceInterview(interview) {
-    if (!interview || !interview.id || !hasMemoryData()) {
+    if (!interview || !interview.id) {
       return;
+    }
+    if (!memory) {
+      memory = emptyState(null);
+    }
+    if (!Array.isArray(memory.interviews)) {
+      memory.interviews = [];
+    }
+    if (!Array.isArray(memory.applications)) {
+      memory.applications = [];
     }
     var index = memory.interviews.findIndex(function (item) {
       return item.id === interview.id;

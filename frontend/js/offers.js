@@ -150,7 +150,7 @@
     viewBtn.textContent = 'View details';
     actions.appendChild(viewBtn);
 
-    if (application.jobUrl) {
+    if (application.jobUrl && /^https?:\/\//i.test(application.jobUrl)) {
       const postingBtn = document.createElement('a');
       postingBtn.className = 'btn btn-secondary btn-sm';
       postingBtn.href = application.jobUrl;

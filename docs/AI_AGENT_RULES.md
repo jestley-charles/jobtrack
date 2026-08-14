@@ -346,18 +346,27 @@ already specified above. Newest at the bottom.)*
   Offers top ribbon repositions by 768. Calendar day min-height increased on
   phone; HTML5 kanban DnD remains desktop-oriented.
 
+- **2026-08-14:** Spring Boot 4 Flyway requires `spring-boot-starter-flyway` +
+  `flyway-database-postgresql` (not bare `flyway-core`). `/api/health` pings
+  JDBC when a DataSource bean exists (503 if invalid); uses `ObjectProvider` so
+  context-load tests without a DataSource still boot. Login redirect allowlists
+  app HTML pages; auth return path keeps `application.html?id=`. `jobUrl` must
+  be http(s) on create/update DTOs and in the frontend form/links.
+
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 10 — Polish (in progress)
-**Last updated by:** Agent session 2026-08-14 (Phase 10 QA polish)
-**Summary:** Completed responsive layout pass, empty states, and loading/error
-  states across all app pages. Force-refresh now restores cached content on
-  failure; application detail interview errors are explicit; forms show
-  Saving…/Adding…; activity + interviews have titled empty panels with CTAs.
+**Phase:** Phase 10 — Polish (ship blockers fixed; README remaining)
+**Last updated by:** Agent session 2026-08-14 (fix ship QA blockers)
+**Summary:** Fixed Flyway Boot 4 wiring, login redirect allowlist, auth return
+  `?id=`, create/edit cache upsert, null-token expiry redirect, jobUrl http(s)
+  validation (client+server), JWT 401 message sanitization, DB-aware health,
+  landing/auth copy (Offers not Contacts), settings export refresh. Backend
+  tests pass (`mvnw test` exit 0).
 
 Next actionable task: **Phase 10 — README with setup instructions + screenshots**.
+  After README: redeploy backend so Flyway runs; smoke-check `/api/health` + demo.
 
 ---
 
@@ -376,13 +385,15 @@ the task is finished.)*
 *(Bugs discovered but not yet fixed. Format: short description, where it
 lives, repro steps if known, suspected cause if known.)*
 
-- **Kanban HTML5 DnD on touch** — board drag-and-drop is unreliable on mobile/
-  tablets; change status via Edit application instead. No Pointer Events
-  rewrite planned for this polish pass.
+- **Kanban HTML5 DnD on touch** — unreliable on mobile/tablets; change status
+  via Edit application instead. No Pointer Events rewrite planned.
+- **Notes table orphaned** — schema + seed only; no API/UI (intentional).
+- **No root README** — Phase 10 backlog item still open.
 
-**User action after pooler fix:** In the Render dashboard, set backend env vars to the
-Supavisor session pooler (see `docs/RENDER_SETUP.md`) and redeploy. Until then, deployed
-API list calls may still return 500.
+**User action (deploy):** Redeploy backend so Flyway auto-config applies.
+  Confirm Render JDBC uses Supavisor session pooler (`docs/RENDER_SETUP.md`).
+  Confirm Firebase `API_URL` is Render (not localhost) after `npm run config`.
+  Smoke: `/api/health` returns 200 only when DB is reachable.
 
 ---
 
@@ -480,6 +491,13 @@ API list calls may still return 500.
 *(Every agent appends one entry here when it finishes a task. Keep entries
 short — this is a log, not a diary.)*
 
+- **2026-08-14 — Backend QA review:** Thorough pass over controllers/services/
+  repos/models/DTOs/JWT/JWKS/CORS/Flyway/seed/Dockerfile/tests. Authz OK
+  (user_id + interview via parent app). Rejection reason not wiped by
+  create/update/status. Cascade deletes OK at FK. Salary min≤max on DTOs.
+  Status enum matches DB check. **Blocker:** Flyway not wired for Boot 4.
+  Also: JWT error messages leak; health ignores DB; notes API absent;
+  no test that PUT preserves rejection_reason.
 - **2026-08-12 — Phase 0, task 1:** Initialized local git repo and top-level
   layout (`frontend/`, `jobtrack-backend/`, `docs/`). Added root `.gitignore`,
   minimal `frontend/index.html` + `css/styles.css`, copied spec to
@@ -664,3 +682,16 @@ short — this is a log, not a diary.)*
   CSS: shell nav tighter ≤768; stats 1-col ≤768; auth single-col ≤768; table
   overflow-x; kanban column widths on small screens; calendar tap targets;
   offers ribbon ≤768; `[hidden]` overrides for flex content panels.
+- **2026-08-14 — whole-app pre-ship QA (no code fixes):** Spec + rules vs
+  code, all HTML/JS pages, backend CRUD/auth/Flyway/CORS/JWT, migrations,
+  seed docs, deploy configs. Backend `mvnw test` exit 0. Ship blockers logged:
+  Flyway Boot 4 starter missing; login redirect sanitizer. High: auth return
+  drops `?id=`, create/edit cache fragility, jobUrl scheme, JWT/health leaks.
+  Intentional gaps: Contacts→Offers, notes API absent, delete account deferred,
+  touch Kanban. README still open. See Known Issues.
+- **2026-08-14 — fix: ship QA blockers + highs:** `spring-boot-starter-flyway` +
+  `flyway-database-postgresql`; login redirect allowlist; `getReturnPath` keeps
+  `application.html?id=`; forms upsert cache from POST/PUT response; null-token
+  → session expiry; jobUrl http(s) client+DTO; JWT 401 generic message; health
+  JDBC ping via `ObjectProvider`; landing/auth copy → Offers; settings export
+  uses `refresh()`. Backend tests pass.

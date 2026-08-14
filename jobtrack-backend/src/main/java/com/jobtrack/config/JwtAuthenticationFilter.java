@@ -8,6 +8,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -17,7 +19,9 @@ import java.util.Set;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+	private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 	private static final Set<String> PUBLIC_PATHS = Set.of("/api/health");
+	private static final String GENERIC_UNAUTHORIZED = "Invalid or expired authentication token";
 
 	private final SupabaseJwtValidator jwtValidator;
 
@@ -69,7 +73,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			filterChain.doFilter(request, response);
 		}
 		catch (JwtException ex) {
-			writeUnauthorized(response, ex.getMessage());
+			log.debug("JWT validation failed: {}", ex.getMessage());
+			writeUnauthorized(response, GENERIC_UNAUTHORIZED);
 		}
 	}
 

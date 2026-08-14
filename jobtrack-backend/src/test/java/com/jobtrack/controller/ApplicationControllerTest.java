@@ -121,6 +121,21 @@ class ApplicationControllerTest {
 	}
 
 	@Test
+	void createRejectsNonHttpJobUrl() throws Exception {
+		CreateApplicationRequest request = new CreateApplicationRequest();
+		request.setCompany("Google");
+		request.setPosition("Software Engineer");
+		request.setStatus(ApplicationStatus.Applied);
+		request.setJobUrl("javascript:alert(1)");
+
+		mockMvc.perform(post("/api/applications")
+				.requestAttr(AuthContext.USER_ID_ATTRIBUTE, USER_ID)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(jsonMapper.writeValueAsString(request)))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void updateReturnsUpdatedApplication() throws Exception {
 		UpdateApplicationRequest request = new UpdateApplicationRequest();
 		request.setCompany("Google");

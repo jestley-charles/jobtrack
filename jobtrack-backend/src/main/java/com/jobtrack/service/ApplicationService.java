@@ -101,7 +101,8 @@ public class ApplicationService {
 		application.setSalaryMax(salaryMax);
 		application.setStatus(status);
 		application.setDateApplied(dateApplied);
-		application.setJobUrl(jobUrl);
+		String normalizedJobUrl = jobUrl == null || jobUrl.isBlank() ? null : jobUrl.trim();
+		application.setJobUrl(normalizedJobUrl);
 	}
 
 }

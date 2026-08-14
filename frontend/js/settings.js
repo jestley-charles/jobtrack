@@ -153,7 +153,7 @@
         exportBtn.disabled = true;
         exportBtn.textContent = 'Exporting…';
         try {
-          const data = await JobTrackDataCache.ensureLoaded();
+          const data = await JobTrackDataCache.refresh();
           const stamp = new Date().toISOString().slice(0, 10);
           downloadJson('jobtrack-export-' + stamp + '.json', {
             exportedAt: new Date().toISOString(),

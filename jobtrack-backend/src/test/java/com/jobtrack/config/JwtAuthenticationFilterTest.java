@@ -61,6 +61,8 @@ class JwtAuthenticationFilterTest {
 		assertFalse(chainCalled.get());
 		assertEquals(401, response.getStatus());
 		assertTrue(response.getContentAsString().contains("Unauthorized"));
+		assertTrue(response.getContentAsString().contains("Invalid or expired authentication token")
+				|| response.getContentAsString().contains("Missing or invalid Authorization header"));
 	}
 
 	@Test
