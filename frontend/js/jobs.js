@@ -14,6 +14,7 @@
   const POINTER_DRAG_THRESHOLD_PX = 8;
   const TOUCH_LONG_PRESS_MS = 400;
   const TOUCH_SCROLL_CANCEL_PX = 10;
+  const KANBAN_PAN_THRESHOLD_PX = 4;
   const KANBAN_DRAG_OVERVIEW_MAX_PLACEHOLDERS = 4;
   const kanbanDragOverviewMql = window.matchMedia('(max-width: 768px)');
 
@@ -542,6 +543,142 @@
     if (handle) {
       handle.draggable = isFinePointer();
     }
+  }
+
+  function getKanbanVerticalScrollContainer(board) {
+    const appMain = board.closest('.app-main');
+    if (appMain) {
+      return appMain;
+    }
+
+    let element = board.parentElement;
+    while (element) {
+      const style = window.getComputedStyle(element);
+      const scrollsVertically =
+        (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
+        element.scrollHeight > element.clientHeight;
+      if (scrollsVertically) {
+        return element;
+      }
+      element = element.parentElement;
+    }
+
+    return document.documentElement;
+  }
+
+  function isKanbanPanTarget(target, board) {
+    if (!board || !board.contains(target)) {
+      return false;
+    }
+    if (target.closest('.kanban-card')) {
+      return false;
+    }
+    if (board.classList.contains('kanban-board--drag-active')) {
+      return false;
+    }
+    return true;
+  }
+
+  function wireKanbanBoardPan() {
+    const board = document.getElementById('kanban-board');
+    if (!board) {
+      return;
+    }
+
+    const verticalScroller = getKanbanVerticalScrollContainer(board);
+    let panState = null;
+
+    function clearPanState(options) {
+      if (!panState) {
+        return;
+      }
+
+      board.classList.remove('kanban-board--panning');
+
+      if (panState.pointerId != null) {
+        try {
+          if (board.hasPointerCapture && board.hasPointerCapture(panState.pointerId)) {
+            board.releasePointerCapture(panState.pointerId);
+          }
+        } catch (err) {
+          // ignore release errors
+        }
+      }
+
+      panState = null;
+
+      if (options && options.suppressClick) {
+        board.dataset.kanbanSuppressClick = 'true';
+      }
+    }
+
+    board.addEventListener('pointerdown', function (event) {
+      if (event.button !== 0 || panState) {
+        return;
+      }
+      if (!isKanbanPanTarget(event.target, board)) {
+        return;
+      }
+
+      panState = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        scrollLeft: board.scrollLeft,
+        scrollTop: verticalScroller.scrollTop,
+        active: false,
+      };
+    });
+
+    board.addEventListener('pointermove', function (event) {
+      if (!panState || event.pointerId !== panState.pointerId) {
+        return;
+      }
+
+      const deltaX = event.clientX - panState.startX;
+      const deltaY = event.clientY - panState.startY;
+
+      if (!panState.active) {
+        if (Math.hypot(deltaX, deltaY) < KANBAN_PAN_THRESHOLD_PX) {
+          return;
+        }
+        panState.active = true;
+        board.classList.add('kanban-board--panning');
+        try {
+          board.setPointerCapture(event.pointerId);
+        } catch (err) {
+          // ignore capture errors
+        }
+      }
+
+      event.preventDefault();
+      board.scrollLeft = panState.scrollLeft - deltaX;
+      verticalScroller.scrollTop = panState.scrollTop - deltaY;
+    });
+
+    function finishPan(event) {
+      if (!panState || event.pointerId !== panState.pointerId) {
+        return;
+      }
+
+      clearPanState({ suppressClick: panState.active });
+    }
+
+    board.addEventListener('pointerup', finishPan);
+    board.addEventListener('pointercancel', finishPan);
+
+    board.addEventListener(
+      'click',
+      function (event) {
+        if (board.dataset.kanbanSuppressClick !== 'true') {
+          return;
+        }
+        delete board.dataset.kanbanSuppressClick;
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      true
+    );
   }
 
   function wireKanbanDragAndDrop() {
@@ -1100,6 +1237,7 @@
     });
     wireAddButtons();
     wireViewToggle();
+    wireKanbanBoardPan();
     wireKanbanDragAndDrop();
     if (JobTrackDataCache.hasData()) {
       return;

@@ -2065,6 +2065,20 @@ body:has(#kanban-drag-overview:not([hidden])) .app-sidebar {
   touch-action: pan-x;
   padding-bottom: 0.25rem;
   max-width: 100%;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.kanban-board--panning,
+.kanban-board--drag-active {
+  cursor: grabbing;
+}
+
+.kanban-board--panning {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .kanban-board--drag-active {
@@ -2233,6 +2247,7 @@ body:has(#kanban-drag-overview:not([hidden])) .app-sidebar {
   border-radius: calc(var(--radius) - 2px);
   box-shadow: 0 2px 8px rgba(26, 29, 38, 0.06);
   touch-action: pan-x;
+  cursor: default;
 }
 
 .kanban-card-drag-handle {
@@ -2324,6 +2339,7 @@ body:has(#kanban-drag-overview:not([hidden])) .app-sidebar {
   padding: 0.85rem 2.1rem 0.85rem 0.9rem;
   color: inherit;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .kanban-card-link:hover {
