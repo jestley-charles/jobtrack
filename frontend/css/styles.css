@@ -1447,6 +1447,15 @@ body.modal-open {
   overflow: hidden;
 }
 
+/* Keep shell navigation clickable above modal backdrops and kanban drag UI. */
+body.modal-open .app-header,
+body.modal-open .app-sidebar,
+body:has(#kanban-drag-overview:not([hidden])) .app-header,
+body:has(#kanban-drag-overview:not([hidden])) .app-sidebar {
+  position: relative;
+  z-index: 1000;
+}
+
 .modal {
   position: fixed;
   inset: 0;

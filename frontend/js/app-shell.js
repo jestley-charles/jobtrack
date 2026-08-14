@@ -96,15 +96,23 @@
     if (window.JobTrackInterviewBriefing && typeof JobTrackInterviewBriefing.close === 'function') {
       JobTrackInterviewBriefing.close();
     }
+
+    if (window.JobTrackJobs && typeof JobTrackJobs.resetDragState === 'function') {
+      JobTrackJobs.resetDragState();
+    }
+  }
+
+  function wireNavCleanup() {
+    document.querySelectorAll('.app-nav-link, .app-brand[href]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        resetTransientUiState();
+      });
+    });
   }
 
   function wirePageLifecycle() {
     window.addEventListener('pagehide', resetTransientUiState);
-    window.addEventListener('pageshow', function (event) {
-      if (event.persisted) {
-        resetTransientUiState();
-      }
-    });
+    window.addEventListener('pageshow', resetTransientUiState);
   }
 
   wirePageLifecycle();
@@ -181,6 +189,7 @@
       scrollActiveNavIntoView(pageId);
     }
 
+    wireNavCleanup();
     wireUserMenu(userEmailEl, logoutBtn, menuBtn, menuPanel, initialsEl, session.user.email);
 
     if (window.JobTrackInterviewBriefing) {

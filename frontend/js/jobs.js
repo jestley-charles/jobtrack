@@ -20,6 +20,7 @@
   let cachedApplications = [];
   let currentView = 'list';
   const pendingStatusSaves = {};
+  let resetKanbanDragStateFn = null;
 
   const listPager = JobTrackPagination.create({
     pageSize: LIST_PAGE_SIZE,
@@ -577,6 +578,16 @@
         window.clearTimeout(drag.longPressTimer);
       }
 
+      if (drag.card && drag.pointerId != null) {
+        try {
+          if (drag.card.hasPointerCapture && drag.card.hasPointerCapture(drag.pointerId)) {
+            drag.card.releasePointerCapture(drag.pointerId);
+          }
+        } catch (err) {
+          // ignore release errors
+        }
+      }
+
       resetCardDragState(drag.card);
       removeDragGhost(drag.ghost);
       board.classList.remove('kanban-board--drag-active');
@@ -903,10 +914,20 @@
       true
     );
 
-    window.addEventListener('pagehide', function () {
+    resetKanbanDragStateFn = function () {
       clearPointerDrag();
       hideKanbanDragOverview(dragOverviewEl, board, highlightedDropElementRef);
+    };
+
+    window.addEventListener('pagehide', function () {
+      resetKanbanDragStateFn();
       flushPendingStatusSaves();
+    });
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') {
+        resetKanbanDragStateFn();
+      }
     });
   }
 
@@ -1085,4 +1106,12 @@
     }
     loadApplications();
   });
+
+  window.JobTrackJobs = {
+    resetDragState: function () {
+      if (resetKanbanDragStateFn) {
+        resetKanbanDragStateFn();
+      }
+    },
+  };
 })();
