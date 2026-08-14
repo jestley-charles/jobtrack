@@ -14,6 +14,8 @@
   const POINTER_DRAG_THRESHOLD_PX = 8;
   const TOUCH_LONG_PRESS_MS = 400;
   const TOUCH_SCROLL_CANCEL_PX = 10;
+  const KANBAN_DRAG_OVERVIEW_MAX_PLACEHOLDERS = 4;
+  const kanbanDragOverviewMql = window.matchMedia('(max-width: 768px)');
 
   let cachedApplications = [];
   let currentView = 'list';
@@ -279,10 +281,137 @@
     return card;
   }
 
-  function clearColumnDragOver() {
-    document.querySelectorAll('.kanban-column--drag-over').forEach(function (column) {
-      column.classList.remove('kanban-column--drag-over');
+  function shouldShowKanbanDragOverview() {
+    return kanbanDragOverviewMql.matches;
+  }
+
+  function clearDropTargetHighlight(highlightedDropElementRef) {
+    if (highlightedDropElementRef.current) {
+      highlightedDropElementRef.current.classList.remove('kanban-column--drag-over');
+      highlightedDropElementRef.current.classList.remove(
+        'kanban-drag-overview-column--drag-over'
+      );
+      highlightedDropElementRef.current = null;
+    }
+  }
+
+  function highlightDropTarget(target, highlightedDropElementRef) {
+    if (!target || !target.element) {
+      clearDropTargetHighlight(highlightedDropElementRef);
+      return;
+    }
+    if (highlightedDropElementRef.current === target.element) {
+      return;
+    }
+    clearDropTargetHighlight(highlightedDropElementRef);
+    highlightedDropElementRef.current = target.element;
+    highlightedDropElementRef.current.classList.add(
+      target.overview ? 'kanban-drag-overview-column--drag-over' : 'kanban-column--drag-over'
+    );
+  }
+
+  function dropTargetAtPoint(clientX, clientY, dragOverviewEl) {
+    const target = document.elementFromPoint(clientX, clientY);
+    if (!target) {
+      return null;
+    }
+
+    if (dragOverviewEl && !dragOverviewEl.hidden) {
+      const overviewColumn = target.closest('.kanban-drag-overview-column');
+      if (overviewColumn && dragOverviewEl.contains(overviewColumn)) {
+        return {
+          status: overviewColumn.dataset.status,
+          element: overviewColumn,
+          overview: true,
+        };
+      }
+      return null;
+    }
+
+    const column = target.closest('.kanban-column');
+    const board = document.getElementById('kanban-board');
+    if (!column || !board || !board.contains(column)) {
+      return null;
+    }
+
+    return {
+      status: column.dataset.status,
+      element: column,
+      overview: false,
+    };
+  }
+
+  function buildKanbanDragOverview(dragOverviewEl, board, draggingCardId) {
+    dragOverviewEl.replaceChildren();
+
+    KANBAN_STATUSES.forEach(function (status) {
+      const sourceColumn = board.querySelector('.kanban-column[data-status="' + status + '"]');
+      let placeholderCount = 0;
+
+      if (sourceColumn) {
+        sourceColumn.querySelectorAll('.kanban-card').forEach(function (card) {
+          if (!draggingCardId || card.dataset.applicationId !== draggingCardId) {
+            placeholderCount += 1;
+          }
+        });
+      }
+
+      const column = document.createElement('div');
+      column.className = 'kanban-drag-overview-column';
+      column.dataset.status = status;
+      if (status === 'Rejected') {
+        column.classList.add('kanban-drag-overview-column--rejected');
+      }
+
+      const header = document.createElement('div');
+      header.className = 'kanban-drag-overview-column-header';
+
+      const title = document.createElement('span');
+      title.className = 'kanban-drag-overview-column-title';
+      title.textContent = status;
+
+      const count = document.createElement('span');
+      count.className = 'kanban-drag-overview-column-count';
+      count.textContent = String(placeholderCount);
+
+      header.appendChild(title);
+      header.appendChild(count);
+
+      const cards = document.createElement('div');
+      cards.className = 'kanban-drag-overview-cards';
+
+      const visiblePlaceholders = Math.min(
+        placeholderCount,
+        KANBAN_DRAG_OVERVIEW_MAX_PLACEHOLDERS
+      );
+      for (let i = 0; i < visiblePlaceholders; i += 1) {
+        const stub = document.createElement('div');
+        stub.className = 'kanban-drag-overview-card';
+        stub.setAttribute('aria-hidden', 'true');
+        cards.appendChild(stub);
+      }
+
+      column.appendChild(header);
+      column.appendChild(cards);
+      dragOverviewEl.appendChild(column);
     });
+  }
+
+  function showKanbanDragOverview(dragOverviewEl, board, draggingCardId) {
+    buildKanbanDragOverview(dragOverviewEl, board, draggingCardId);
+    dragOverviewEl.hidden = false;
+    dragOverviewEl.setAttribute('aria-hidden', 'false');
+    board.classList.add('kanban-board--drag-overview-source');
+  }
+
+  function hideKanbanDragOverview(dragOverviewEl, board, highlightedDropElementRef) {
+    if (!dragOverviewEl.hidden) {
+      dragOverviewEl.hidden = true;
+      dragOverviewEl.setAttribute('aria-hidden', 'true');
+      dragOverviewEl.replaceChildren();
+    }
+    board.classList.remove('kanban-board--drag-overview-source');
+    clearDropTargetHighlight(highlightedDropElementRef);
   }
 
   function findApplication(applicationId) {
@@ -375,26 +504,6 @@
     errorEl.hidden = false;
   }
 
-  function columnAtPoint(clientX, clientY) {
-    const target = document.elementFromPoint(clientX, clientY);
-    if (!target) {
-      return null;
-    }
-    const column = target.closest('.kanban-column');
-    return column && document.getElementById('kanban-board').contains(column) ? column : null;
-  }
-
-  function highlightDropColumn(column) {
-    if (!column) {
-      clearColumnDragOver();
-      return;
-    }
-    if (!column.classList.contains('kanban-column--drag-over')) {
-      clearColumnDragOver();
-      column.classList.add('kanban-column--drag-over');
-    }
-  }
-
   function createDragGhost(card) {
     const ghost = card.cloneNode(true);
     ghost.classList.add('kanban-drag-ghost');
@@ -440,6 +549,21 @@
     let dragDidMove = false;
     let suppressClick = false;
     let pointerDrag = null;
+    const highlightedDropElementRef = { current: null };
+
+    const dragOverviewEl = document.createElement('div');
+    dragOverviewEl.id = 'kanban-drag-overview';
+    dragOverviewEl.className = 'kanban-drag-overview';
+    dragOverviewEl.hidden = true;
+    dragOverviewEl.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(dragOverviewEl);
+
+    function maybeShowDragOverview(applicationId) {
+      if (!shouldShowKanbanDragOverview()) {
+        return;
+      }
+      showKanbanDragOverview(dragOverviewEl, board, applicationId);
+    }
 
     function clearPointerDrag(options) {
       if (!pointerDrag) {
@@ -456,7 +580,7 @@
       resetCardDragState(drag.card);
       removeDragGhost(drag.ghost);
       board.classList.remove('kanban-board--drag-active');
-      clearColumnDragOver();
+      hideKanbanDragOverview(dragOverviewEl, board, highlightedDropElementRef);
 
       if (options && options.suppressClick) {
         suppressClick = true;
@@ -471,6 +595,7 @@
       pointerDrag.mode = 'dragging';
       pointerDrag.card.classList.add('kanban-card--dragging');
       board.classList.add('kanban-board--drag-active');
+      maybeShowDragOverview(pointerDrag.applicationId);
       pointerDrag.ghost = createDragGhost(pointerDrag.card);
       positionDragGhost(pointerDrag.ghost, event.clientX, event.clientY);
 
@@ -511,6 +636,7 @@
       card.classList.add('kanban-card--dragging');
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', draggedId);
+      maybeShowDragOverview(draggedId);
     });
 
     board.addEventListener('drag', function () {
@@ -524,7 +650,7 @@
       if (card) {
         card.classList.remove('kanban-card--dragging');
       }
-      clearColumnDragOver();
+      hideKanbanDragOverview(dragOverviewEl, board, highlightedDropElementRef);
       if (dragDidMove) {
         suppressClick = true;
       }
@@ -533,6 +659,10 @@
     });
 
     board.addEventListener('dragover', function (event) {
+      if (dragOverviewEl && !dragOverviewEl.hidden) {
+        return;
+      }
+
       const column = event.target.closest('.kanban-column');
       if (!column || !board.contains(column) || !draggedId) {
         return;
@@ -540,10 +670,17 @@
 
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
-      highlightDropColumn(column);
+      highlightDropTarget(
+        { status: column.dataset.status, element: column, overview: false },
+        highlightedDropElementRef
+      );
     });
 
     board.addEventListener('dragleave', function (event) {
+      if (dragOverviewEl && !dragOverviewEl.hidden) {
+        return;
+      }
+
       const column = event.target.closest('.kanban-column');
       if (!column || !board.contains(column)) {
         return;
@@ -553,17 +690,71 @@
       if (related && column.contains(related)) {
         return;
       }
-      column.classList.remove('kanban-column--drag-over');
+      if (highlightedDropElementRef.current === column) {
+        clearDropTargetHighlight(highlightedDropElementRef);
+      }
     });
 
     board.addEventListener('drop', function (event) {
+      if (dragOverviewEl && !dragOverviewEl.hidden) {
+        return;
+      }
+
       const column = event.target.closest('.kanban-column');
       if (!column || !board.contains(column)) {
         return;
       }
 
       event.preventDefault();
-      clearColumnDragOver();
+      clearDropTargetHighlight(highlightedDropElementRef);
+
+      const applicationId =
+        event.dataTransfer.getData('text/plain') || draggedId;
+      const newStatus = column.dataset.status;
+      if (!applicationId || !newStatus) {
+        return;
+      }
+
+      moveApplicationStatus(applicationId, newStatus);
+    });
+
+    dragOverviewEl.addEventListener('dragover', function (event) {
+      const column = event.target.closest('.kanban-drag-overview-column');
+      if (!column || !draggedId) {
+        return;
+      }
+
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      highlightDropTarget(
+        { status: column.dataset.status, element: column, overview: true },
+        highlightedDropElementRef
+      );
+    });
+
+    dragOverviewEl.addEventListener('dragleave', function (event) {
+      const column = event.target.closest('.kanban-drag-overview-column');
+      if (!column) {
+        return;
+      }
+
+      const related = event.relatedTarget;
+      if (related && column.contains(related)) {
+        return;
+      }
+      if (highlightedDropElementRef.current === column) {
+        clearDropTargetHighlight(highlightedDropElementRef);
+      }
+    });
+
+    dragOverviewEl.addEventListener('drop', function (event) {
+      const column = event.target.closest('.kanban-drag-overview-column');
+      if (!column) {
+        return;
+      }
+
+      event.preventDefault();
+      clearDropTargetHighlight(highlightedDropElementRef);
 
       const applicationId =
         event.dataTransfer.getData('text/plain') || draggedId;
@@ -645,6 +836,7 @@
         pointerDrag.mode = 'dragging';
         pointerDrag.card.classList.add('kanban-card--dragging');
         board.classList.add('kanban-board--drag-active');
+        maybeShowDragOverview(pointerDrag.applicationId);
         pointerDrag.ghost = createDragGhost(pointerDrag.card);
         positionDragGhost(pointerDrag.ghost, event.clientX, event.clientY);
         try {
@@ -659,7 +851,10 @@
         if (pointerDrag.ghost) {
           positionDragGhost(pointerDrag.ghost, event.clientX, event.clientY);
         }
-        highlightDropColumn(columnAtPoint(event.clientX, event.clientY));
+        highlightDropTarget(
+          dropTargetAtPoint(event.clientX, event.clientY, dragOverviewEl),
+          highlightedDropElementRef
+        );
       }
     });
 
@@ -672,10 +867,9 @@
       const didDrag = activeDrag.mode === 'dragging';
 
       if (didDrag) {
-        const column = columnAtPoint(event.clientX, event.clientY);
-        const newStatus = column ? column.dataset.status : null;
-        if (newStatus) {
-          moveApplicationStatus(activeDrag.applicationId, newStatus);
+        const target = dropTargetAtPoint(event.clientX, event.clientY, dragOverviewEl);
+        if (target && target.status) {
+          moveApplicationStatus(activeDrag.applicationId, target.status);
         }
       }
 

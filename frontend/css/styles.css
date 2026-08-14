@@ -2010,6 +2010,108 @@ body.modal-open {
   user-select: none;
 }
 
+.kanban-board--drag-overview-source {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.kanban-drag-overview {
+  position: fixed;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 0.75rem;
+  z-index: 950;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 -8px 32px rgba(26, 29, 38, 0.18);
+  pointer-events: auto;
+}
+
+.kanban-drag-overview[hidden] {
+  display: none !important;
+}
+
+.kanban-drag-overview-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #eef1f6;
+  border: 1px solid var(--color-border);
+  border-radius: calc(var(--radius) - 2px);
+  overflow: hidden;
+}
+
+.kanban-drag-overview-column--rejected {
+  background: #f3f4f6;
+}
+
+.kanban-drag-overview-column--drag-over {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+}
+
+.kanban-drag-overview-column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.15rem;
+  padding: 0.3rem 0.35rem;
+  border-bottom: 1px solid var(--color-border);
+  min-width: 0;
+}
+
+.kanban-drag-overview-column-title {
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.kanban-drag-overview-column-count {
+  flex-shrink: 0;
+  min-width: 0.9rem;
+  padding: 0 0.2rem;
+  font-size: 0.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  color: var(--color-muted);
+  background: var(--color-surface);
+  border-radius: 999px;
+}
+
+.kanban-drag-overview-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.35rem;
+  min-height: 1.5rem;
+  max-height: 4rem;
+  overflow: hidden;
+}
+
+.kanban-drag-overview-column--drag-over .kanban-drag-overview-cards {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.kanban-drag-overview-card {
+  height: 0.5rem;
+  border-radius: 2px;
+  background: var(--color-surface);
+  border: 1px solid rgba(26, 29, 38, 0.12);
+  box-shadow: 0 1px 2px rgba(26, 29, 38, 0.06);
+}
+
 .kanban-column {
   display: flex;
   flex-direction: column;
@@ -2143,28 +2245,6 @@ body.modal-open {
   transform: translate(-50%, -50%);
   box-shadow: 0 12px 32px rgba(26, 29, 38, 0.2);
   touch-action: none;
-}
-
-@media (pointer: coarse) {
-  .kanban-card-drag-handle::after {
-    content: 'Hold to move';
-    position: absolute;
-    top: calc(100% + 0.15rem);
-    right: 0;
-    white-space: nowrap;
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: var(--color-muted);
-    pointer-events: none;
-  }
-
-  .kanban-card--dragging .kanban-card-drag-handle::after,
-  .kanban-card--lifted .kanban-card-drag-handle::after,
-  .kanban-card--pending-drag .kanban-card-drag-handle::after {
-    content: none;
-  }
 }
 
 .kanban-column--drag-over {
@@ -2764,6 +2844,7 @@ body.modal-open {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  height: 100%;
   padding: 1.25rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -2800,6 +2881,7 @@ body.modal-open {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+  flex: 1;
 }
 
 .rejected-reason-status {
@@ -2816,6 +2898,7 @@ body.modal-open {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-top: auto;
 }
 
 /* Settings */
@@ -2823,7 +2906,43 @@ body.modal-open {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  max-width: 42rem;
+}
+
+@media (min-width: 769px) {
+  .rejected-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    align-items: start;
+  }
+
+  .settings-stack {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    align-items: start;
+  }
+
+  .settings-action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .settings-action-row .btn {
+    width: 100%;
+  }
+
+  .settings-pref {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .settings-pref .settings-select,
+  .settings-pref .settings-toggle {
+    align-self: flex-start;
+  }
+
+  .settings-form {
+    max-width: none;
+  }
 }
 
 .settings-section {
