@@ -157,11 +157,17 @@
               <div class="settings-action-row">
                 <div>
                   <p class="settings-action-title">Delete account</p>
-                  <p class="settings-action-hint">Not available yet — contact support if you need your workspace removed.</p>
+                  <p class="settings-action-hint" id="settings-delete-hint">
+                    Permanently remove your workspace, applications, and interviews.
+                  </p>
                 </div>
-                <button type="button" class="btn btn-danger" id="settings-delete-btn" disabled title="Account deletion is not available yet">Delete account</button>
+                <button type="button" class="btn btn-danger" id="settings-delete-btn">Delete account</button>
               </div>
             </div>
+            <p id="settings-delete-demo-notice" class="settings-demo-notice" hidden>
+              Account deletion is disabled for the shared demo account.
+            </p>
+            <p id="settings-delete-error" class="form-message form-message--error" hidden></p>
           </section>
         </div>
       </main>
@@ -175,6 +181,7 @@
   <script src="js/api.js"></script>
   <script src="js/data-cache.js"></script>
   <script src="js/interview-briefing.js"></script>
+  <script src="js/confirm-modal.js"></script>
   <script src="js/app-shell.js"></script>
   <script src="js/settings.js"></script>
 </body>

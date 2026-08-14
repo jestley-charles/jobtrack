@@ -87,6 +87,19 @@
     }
   }
 
+  function configureDemoDeleteLock(email) {
+    const deleteBtn = document.getElementById('settings-delete-btn');
+    const noticeEl = document.getElementById('settings-delete-demo-notice');
+    const isDemo = JobTrackAuth.isDemoAccount(email);
+
+    if (deleteBtn) {
+      deleteBtn.disabled = isDemo;
+    }
+    if (noticeEl) {
+      noticeEl.hidden = !isDemo;
+    }
+  }
+
   function bindPasswordForm() {
     const form = document.getElementById('settings-password-form');
     const submitBtn = document.getElementById('settings-password-submit');
@@ -212,12 +225,15 @@
     }
 
     if (clearBtn) {
-      clearBtn.addEventListener('click', function () {
+      clearBtn.addEventListener('click', async function () {
         showMessage(messageEl, '');
         showMessage(errorEl, '');
-        const ok = window.confirm(
-          'Clear cached applications and interviews from this browser? Your account data on the server is not deleted.'
-        );
+        const ok = await JobTrackConfirm.confirm({
+          title: 'Clear local cache?',
+          message:
+            'Remove cached applications and interviews from this browser? Your account data on the server is not deleted.',
+          confirmLabel: 'Clear cache',
+        });
         if (!ok) {
           return;
         }
@@ -233,17 +249,59 @@
 
   function bindSessionActions() {
     const logoutBtn = document.getElementById('settings-logout-btn');
-    if (!logoutBtn) {
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async function () {
+        logoutBtn.disabled = true;
+        try {
+          await JobTrackAuth.signOut();
+        } catch (err) {
+          // Still leave the app even if remote sign-out fails.
+        }
+        window.location.replace('login.html');
+      });
+    }
+
+    const deleteBtn = document.getElementById('settings-delete-btn');
+    const deleteErrorEl = document.getElementById('settings-delete-error');
+    if (!deleteBtn) {
       return;
     }
-    logoutBtn.addEventListener('click', async function () {
-      logoutBtn.disabled = true;
-      try {
-        await JobTrackAuth.signOut();
-      } catch (err) {
-        // Still leave the app even if remote sign-out fails.
+
+    deleteBtn.addEventListener('click', async function () {
+      showMessage(deleteErrorEl, '');
+
+      const emailEl = document.getElementById('settings-email');
+      const email = emailEl ? emailEl.textContent : '';
+      if (JobTrackAuth.isDemoAccount(email)) {
+        showMessage(deleteErrorEl, 'Account deletion is disabled for the demo account.');
+        return;
       }
-      window.location.replace('login.html');
+
+      const ok = await JobTrackConfirm.confirm({
+        title: 'Delete your account?',
+        message:
+          'This permanently removes your workspace, applications, interviews, and contacts. This cannot be undone.',
+        confirmLabel: 'Delete account',
+      });
+      if (!ok) {
+        return;
+      }
+
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = 'Deleting…';
+      try {
+        const response = await JobTrackApi.fetch('/api/me', { method: 'DELETE' });
+        if (!response.ok && response.status !== 204) {
+          throw new Error('Could not delete your account. Please try again.');
+        }
+        await JobTrackAuth.clearLocalSession();
+        window.location.replace('login.html');
+      } catch (err) {
+        showMessage(deleteErrorEl, err.message || 'Could not delete your account.');
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = 'Delete account';
+        configureDemoDeleteLock(email);
+      }
     });
   }
 
@@ -256,6 +314,7 @@
     const user = session.user || null;
     fillAccount(user);
     configureDemoPasswordLock(user && user.email);
+    configureDemoDeleteLock(user && user.email);
 
     bindPasswordForm();
     bindPreferences();

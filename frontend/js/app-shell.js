@@ -61,6 +61,10 @@
   function resetTransientUiState() {
     document.body.classList.remove('modal-open');
 
+    if (window.JobTrackConfirm && typeof JobTrackConfirm.dismiss === 'function') {
+      JobTrackConfirm.dismiss();
+    }
+
     document.querySelectorAll('.modal:not([hidden])').forEach(function (modal) {
       modal.hidden = true;
       modal.setAttribute('aria-hidden', 'true');

@@ -741,14 +741,16 @@ a:hover {
 }
 
 .app-page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--color-bg);
 }
 
 .app-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
 }
 
 .app-header {
@@ -890,6 +892,9 @@ a:hover {
 .app-main {
   flex: 1;
   min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1.75rem 2rem;
 }
 
@@ -1447,6 +1452,10 @@ body.modal-open {
   overflow: hidden;
 }
 
+body.modal-open .app-main {
+  overflow: hidden;
+}
+
 /* Keep shell navigation clickable above modal backdrops and kanban drag UI. */
 body.modal-open .app-header,
 body.modal-open .app-sidebar,
@@ -1544,6 +1553,16 @@ body:has(#kanban-drag-overview:not([hidden])) .app-sidebar {
   gap: 0.75rem;
   padding: 1rem 1.5rem 1.25rem;
   border-top: 1px solid var(--color-border);
+}
+
+.confirm-dialog {
+  max-width: 26rem;
+}
+
+.confirm-message {
+  margin: 0;
+  color: var(--color-text);
+  line-height: 1.5;
 }
 
 /* Interview briefing (post-login) */

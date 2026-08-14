@@ -222,11 +222,14 @@
   }
 
   async function declineOffer(application) {
-    const confirmed = window.confirm(
-      'Decline the offer from ' +
+    const confirmed = await JobTrackConfirm.confirm({
+      title: 'Decline offer?',
+      message:
+        'Decline the offer from ' +
         application.company +
-        '? This will mark the application as Rejected.'
-    );
+        '? This will mark the application as Rejected.',
+      confirmLabel: 'Decline offer',
+    });
     if (!confirmed) {
       return;
     }

@@ -13,4 +13,6 @@ public interface ContactRepository extends JpaRepository<Contact, UUID> {
 
 	Optional<Contact> findByIdAndUserId(UUID id, UUID userId);
 
+	void deleteByUserId(UUID userId);
+
 }

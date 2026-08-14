@@ -292,7 +292,7 @@ already specified above. Newest at the bottom.)*
   (`JobTrackInterviewForm`) modal — POST/PUT `/api/interviews`. Create locks
   `applicationId` on application detail; interviews page shows application
   select. `datetime-local` converted to/from ISO 8601 Instant. Delete available
-  on application detail interview rows.
+  on application detail interview rows and interviews calendar day agenda.
 - **2026-08-14:** List API data (applications + interviews) is cached in
   `sessionStorage` via `js/data-cache.js` (`JobTrackDataCache`). Nav page
   switches reuse the cache (`ensureLoaded`); **Refresh** buttons and
@@ -336,8 +336,18 @@ already specified above. Newest at the bottom.)*
 - **2026-08-14:** Settings is a client-only SaaS page (no new Spring APIs): Account
   (email / member since), Security (`supabase.auth.updateUser` password),
   Preferences (`localStorage` `jobtrack.jobsView` + `jobtrack.briefing.enabled`),
-  Data (export apps+interviews JSON via cache; clear cache), Session (log out;
-  delete account deferred/disabled). No billing, teams, or notifications.
+  Data (export apps+interviews JSON via cache; clear cache), Session (log out).
+  **Account deletion:** `DELETE /api/me` via `UserAccountService` — wipes
+  contacts + applications (cascades interviews/notes) then `auth.users` row;
+  blocked for `demo@jobtrack.com` (frontend + backend). No billing, teams, or
+  notifications.
+- **2026-08-14:** Destructive confirmations use shared `js/confirm-modal.js`
+  (`JobTrackConfirm.confirm`) — modal with Cancel/Delete instead of
+  `window.confirm()`. Used on delete application/interview/account, clear
+  cache, and decline offer.
+- **2026-08-14:** App shell scroll: `body.app-page` is `height: 100vh;
+  overflow: hidden`; only `.app-main` scrolls (`overflow-y: auto`). Header and
+  sidebar stay fixed while page content scrolls.
 
 - **2026-08-14:** Responsive polish keeps horizontal kanban (board is the only
   x-scroll container) and horizontal shell nav ≤768 (tighter padding, no
@@ -363,12 +373,12 @@ already specified above. Newest at the bottom.)*
 
 ## 6. Current Status
 
-**Phase:** Phase 10 — Polish (mobile UX + cache fixes done; README remaining)
-**Last updated by:** Agent session 2026-08-14 (fix mobile/cache/kanban QA)
-**Summary:** Fixed auth page mobile touch targets, kanban pointer DnD on touch,
-  debounced kanban status saves (4s), cached user initials (no `?` flash),
-  local-session nav guards (no Auth spam on tab switch), mobile nav scroll-to-active,
-  demo account password lockout. Tab pages skip redundant `ensureLoaded` when cache warm.
+**Phase:** Phase 10 — Polish (README remaining)
+**Last updated by:** Agent session 2026-08-14 (implement delete account, confirm modal, scroll shell)
+**Summary:** Account deletion via Settings (`DELETE /api/me`, demo blocked).
+  Shared confirm modal replaces native dialogs on all delete/destructive actions.
+  Interviews calendar agenda has Edit + Delete. App shell: fixed header/sidebar,
+  scrollable main content only. Backend tests pass (68).
 
 Next actionable task: **Phase 10 — README with setup instructions + screenshots**.
   After README: redeploy backend so Flyway runs; smoke-check `/api/health` + demo.
@@ -482,6 +492,10 @@ lives, repro steps if known, suspected cause if known.)*
 - [x] Fix Rejected empty state (`.rejected-empty[hidden]` CSS)
 - [x] Assistant QA polish (position, last-day list, dates, error, prefs gate)
 - [x] Settings tab (Account, Security, Preferences, Data, Session)
+- [x] Account deletion (Settings, `DELETE /api/me`, demo blocked)
+- [x] Confirm modal for destructive actions (replaces `window.confirm`)
+- [x] Fixed shell scroll (header/sidebar fixed, main content scrolls)
+- [x] Interview delete on calendar day agenda
 - [x] Responsive layout pass (mobile/tablet)
 - [x] Empty states (no applications yet, etc.)
 - [x] Loading/error states on all fetch calls
@@ -494,6 +508,11 @@ lives, repro steps if known, suspected cause if known.)*
 *(Every agent appends one entry here when it finishes a task. Keep entries
 short — this is a log, not a diary.)*
 
+- **2026-08-14 — implement: delete account + confirm modal + scroll shell:**
+  Backend `UserAccountService` + `DELETE /api/me` (contacts, applications,
+  auth.users; demo email forbidden). Frontend `confirm-modal.js` on all app
+  pages; wired to delete application/interview/account, clear cache, decline
+  offer. Interviews agenda Edit+Delete. CSS: `app-main` scroll only. Tests pass.
 - **2026-08-14 — Backend QA review:** Thorough pass over controllers/services/
   repos/models/DTOs/JWT/JWKS/CORS/Flyway/seed/Dockerfile/tests. Authz OK
   (user_id + interview via parent app). Rejection reason not wiped by

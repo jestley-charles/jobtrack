@@ -302,13 +302,54 @@
         JobTrackInterviewForm.openForEdit(item);
       });
 
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn btn-danger btn-sm';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.addEventListener('click', function () {
+        handleDeleteInterview(item);
+      });
+
       actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
 
       li.appendChild(timeEl);
       li.appendChild(body);
       li.appendChild(actions);
       listEl.appendChild(li);
     });
+  }
+
+  async function handleDeleteInterview(item) {
+    const label = item.interviewType || 'Interview';
+    const confirmed = await JobTrackConfirm.confirm({
+      title: 'Delete ' + label.toLowerCase() + '?',
+      message: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    const errorEl = document.getElementById('interviews-error');
+    errorEl.hidden = true;
+    errorEl.textContent = '';
+
+    try {
+      const response = await JobTrackApi.fetch('/api/interviews/' + item.id, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok && response.status !== 204) {
+        throw new Error('Could not delete interview. Please try again.');
+      }
+
+      JobTrackDataCache.removeInterview(item.id);
+      await loadInterviews({ preserveSelection: true, force: true });
+    } catch (err) {
+      errorEl.textContent = err.message || 'Something went wrong.';
+      errorEl.hidden = false;
+    }
   }
 
   function shiftMonth(delta) {

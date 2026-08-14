@@ -318,9 +318,11 @@
 
   async function handleDeleteInterview(interview) {
     const label = interview.interviewType || 'Interview';
-    const confirmed = window.confirm(
-      'Delete this ' + label.toLowerCase() + '? This cannot be undone.'
-    );
+    const confirmed = await JobTrackConfirm.confirm({
+      title: 'Delete ' + label.toLowerCase() + '?',
+      message: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+    });
     if (!confirmed) {
       return;
     }
@@ -434,9 +436,11 @@
       return;
     }
 
-    const confirmed = window.confirm(
-      'Delete this application? This cannot be undone.'
-    );
+    const confirmed = await JobTrackConfirm.confirm({
+      title: 'Delete application?',
+      message: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+    });
     if (!confirmed) {
       return;
     }
