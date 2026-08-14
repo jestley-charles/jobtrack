@@ -703,3 +703,7 @@ short — this is a log, not a diary.)*
   use local `getSession()` not network `getUser()`. User display cache for initials.
   Kanban pointer DnD + 4s debounced PATCH (optimistic, no rollback). Nav scrolls
   active tab on mobile. Demo password disabled. List pages skip fetch when cache warm.
+- **2026-08-14 — fix: auth mobile layout + kanban touch drag:** Auth mobile CSS was
+  overridden (rules placed before base styles) — moved full-bleed mobile auth block
+  after base rules. Kanban touch uses long-press (400ms) then free horizontal drag
+  with ghost; quick swipe scrolls board without picking up card.

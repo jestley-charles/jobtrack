@@ -17,6 +17,10 @@
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+html {
+  height: -webkit-fill-available;
+}
+
 *,
 *::before,
 *::after {
@@ -337,40 +341,6 @@ a:hover {
   }
 }
 
-@media (max-width: 768px) {
-  .auth-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .auth-aside {
-    display: none;
-  }
-
-  .auth-card {
-    max-width: none;
-    min-height: 100vh;
-    min-height: 100dvh;
-    border-left: none;
-    padding: 2rem 1.5rem;
-    justify-content: flex-start;
-    padding-top: max(2rem, env(safe-area-inset-top));
-    padding-bottom: max(2rem, env(safe-area-inset-bottom));
-  }
-
-  .auth-brand--mobile {
-    display: inline-block;
-  }
-
-  .auth-form input {
-    min-height: 2.75rem;
-    font-size: 16px;
-  }
-
-  .auth-form .btn {
-    min-height: 2.75rem;
-  }
-}
-
 /* Auth pages */
 .auth-page {
   min-height: 100vh;
@@ -579,6 +549,80 @@ a:hover {
   text-align: center;
   font-size: 0.9rem;
   color: var(--color-muted);
+}
+
+@media (max-width: 768px) {
+  .auth-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    background: var(--color-surface);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .auth-layout {
+    grid-template-columns: 1fr;
+    max-width: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    margin: 0;
+  }
+
+  .auth-aside {
+    display: none;
+  }
+
+  .auth-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    margin: 0;
+    padding: 1.25rem 1.25rem 2rem;
+    padding-top: max(1.25rem, env(safe-area-inset-top));
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
+    border: none;
+    border-radius: 0;
+    background: var(--color-surface);
+  }
+
+  .auth-brand--mobile {
+    display: inline-block;
+    margin-bottom: 1.25rem;
+  }
+
+  .auth-card h1 {
+    font-size: 1.375rem;
+  }
+
+  .auth-subtitle {
+    margin-bottom: 1.25rem;
+  }
+
+  .auth-form {
+    gap: 1.125rem;
+  }
+
+  .auth-form input,
+  .auth-form .btn {
+    min-height: 3rem;
+    font-size: 16px;
+  }
+
+  .auth-form .btn-primary {
+    margin-top: 0.25rem;
+  }
+
+  .auth-footer a {
+    display: inline-block;
+    padding: 0.35rem 0;
+  }
 }
 
 /* Buttons */
@@ -1960,6 +2004,12 @@ body.modal-open {
   max-width: 100%;
 }
 
+.kanban-board--drag-active {
+  touch-action: none;
+  overflow-x: hidden;
+  user-select: none;
+}
+
 .kanban-column {
   display: flex;
   flex-direction: column;
@@ -2018,12 +2068,56 @@ body.modal-open {
   box-shadow: 0 2px 8px rgba(26, 29, 38, 0.06);
   cursor: grab;
   touch-action: pan-x;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.kanban-card--pending-drag {
+  touch-action: none;
 }
 
 .kanban-card--dragging {
-  opacity: 0.45;
+  opacity: 0.35;
   cursor: grabbing;
   touch-action: none;
+}
+
+.kanban-card--lifted {
+  opacity: 1;
+  transform: scale(1.02);
+  box-shadow: 0 10px 28px rgba(26, 29, 38, 0.18);
+  z-index: 2;
+  position: relative;
+}
+
+.kanban-drag-ghost {
+  position: fixed;
+  z-index: 1000;
+  margin: 0;
+  pointer-events: none;
+  opacity: 0.95;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 12px 32px rgba(26, 29, 38, 0.2);
+  touch-action: none;
+}
+
+@media (pointer: coarse) {
+  .kanban-card::after {
+    content: 'Hold to move';
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .kanban-card--dragging::after,
+  .kanban-card--lifted::after,
+  .kanban-card--pending-drag::after {
+    content: none;
+  }
 }
 
 .kanban-column--drag-over {

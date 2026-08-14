@@ -12,6 +12,8 @@
   const LIST_PAGE_SIZE = 10;
   const STATUS_SAVE_DELAY_MS = 4000;
   const POINTER_DRAG_THRESHOLD_PX = 8;
+  const TOUCH_LONG_PRESS_MS = 400;
+  const TOUCH_SCROLL_CANCEL_PX = 10;
 
   let cachedApplications = [];
   let currentView = 'list';
@@ -350,12 +352,88 @@
     }
   }
 
+  function createDragGhost(card) {
+    const ghost = card.cloneNode(true);
+    ghost.classList.add('kanban-drag-ghost');
+    ghost.classList.remove(
+      'kanban-card--dragging',
+      'kanban-card--lifted',
+      'kanban-card--pending-drag'
+    );
+    ghost.style.width = card.getBoundingClientRect().width + 'px';
+    document.body.appendChild(ghost);
+    return ghost;
+  }
+
+  function positionDragGhost(ghost, clientX, clientY) {
+    ghost.style.left = clientX + 'px';
+    ghost.style.top = clientY + 'px';
+  }
+
+  function removeDragGhost(ghost) {
+    if (ghost && ghost.parentNode) {
+      ghost.parentNode.removeChild(ghost);
+    }
+  }
+
+  function resetCardDragState(card) {
+    if (!card) {
+      return;
+    }
+    card.classList.remove(
+      'kanban-card--dragging',
+      'kanban-card--lifted',
+      'kanban-card--pending-drag'
+    );
+    card.draggable = window.matchMedia('(pointer: fine)').matches;
+  }
+
   function wireKanbanDragAndDrop() {
     const board = document.getElementById('kanban-board');
     let draggedId = null;
     let dragDidMove = false;
     let suppressClick = false;
     let pointerDrag = null;
+
+    function clearPointerDrag(options) {
+      if (!pointerDrag) {
+        return;
+      }
+
+      const drag = pointerDrag;
+      pointerDrag = null;
+
+      if (drag.longPressTimer) {
+        window.clearTimeout(drag.longPressTimer);
+      }
+
+      resetCardDragState(drag.card);
+      removeDragGhost(drag.ghost);
+      board.classList.remove('kanban-board--drag-active');
+      clearColumnDragOver();
+
+      if (options && options.suppressClick) {
+        suppressClick = true;
+      }
+    }
+
+    function activateTouchDrag(event) {
+      if (!pointerDrag || pointerDrag.mode !== 'armed') {
+        return;
+      }
+
+      pointerDrag.mode = 'dragging';
+      pointerDrag.card.classList.add('kanban-card--dragging');
+      board.classList.add('kanban-board--drag-active');
+      pointerDrag.ghost = createDragGhost(pointerDrag.card);
+      positionDragGhost(pointerDrag.ghost, event.clientX, event.clientY);
+
+      try {
+        pointerDrag.card.setPointerCapture(event.pointerId);
+      } catch (err) {
+        // ignore capture errors
+      }
+    }
 
     board.addEventListener('dragstart', function (event) {
       if (pointerDrag) {
@@ -447,14 +525,32 @@
         return;
       }
 
+      const isTouch = event.pointerType === 'touch';
       pointerDrag = {
         card: card,
         applicationId: card.dataset.applicationId,
         pointerId: event.pointerId,
         startX: event.clientX,
         startY: event.clientY,
-        moved: false,
+        isTouch: isTouch,
+        mode: isTouch ? 'pending' : 'mouse-pending',
+        ghost: null,
+        longPressTimer: null,
       };
+
+      if (isTouch) {
+        card.classList.add('kanban-card--pending-drag');
+        pointerDrag.longPressTimer = window.setTimeout(function () {
+          if (!pointerDrag || pointerDrag.mode !== 'pending') {
+            return;
+          }
+          pointerDrag.mode = 'armed';
+          pointerDrag.card.classList.add('kanban-card--lifted');
+          if (navigator.vibrate) {
+            navigator.vibrate(12);
+          }
+        }, TOUCH_LONG_PRESS_MS);
+      }
     });
 
     board.addEventListener('pointermove', function (event) {
@@ -464,13 +560,28 @@
 
       const deltaX = event.clientX - pointerDrag.startX;
       const deltaY = event.clientY - pointerDrag.startY;
-      if (!pointerDrag.moved) {
-        if (Math.hypot(deltaX, deltaY) < POINTER_DRAG_THRESHOLD_PX) {
+      const distance = Math.hypot(deltaX, deltaY);
+
+      if (pointerDrag.mode === 'pending') {
+        if (distance > TOUCH_SCROLL_CANCEL_PX) {
+          clearPointerDrag();
+        }
+        return;
+      }
+
+      if (pointerDrag.mode === 'armed') {
+        activateTouchDrag(event);
+      }
+
+      if (pointerDrag.mode === 'mouse-pending') {
+        if (distance < POINTER_DRAG_THRESHOLD_PX) {
           return;
         }
-        pointerDrag.moved = true;
+        pointerDrag.mode = 'dragging';
         pointerDrag.card.classList.add('kanban-card--dragging');
-        pointerDrag.card.draggable = false;
+        board.classList.add('kanban-board--drag-active');
+        pointerDrag.ghost = createDragGhost(pointerDrag.card);
+        positionDragGhost(pointerDrag.ghost, event.clientX, event.clientY);
         try {
           pointerDrag.card.setPointerCapture(event.pointerId);
         } catch (err) {
@@ -478,8 +589,13 @@
         }
       }
 
-      event.preventDefault();
-      highlightDropColumn(columnAtPoint(event.clientX, event.clientY));
+      if (pointerDrag.mode === 'dragging') {
+        event.preventDefault();
+        if (pointerDrag.ghost) {
+          positionDragGhost(pointerDrag.ghost, event.clientX, event.clientY);
+        }
+        highlightDropColumn(columnAtPoint(event.clientX, event.clientY));
+      }
     });
 
     function finishPointerDrag(event) {
@@ -488,24 +604,22 @@
       }
 
       const activeDrag = pointerDrag;
-      pointerDrag = null;
-      activeDrag.card.classList.remove('kanban-card--dragging');
-      activeDrag.card.draggable = true;
-      clearColumnDragOver();
+      const didDrag = activeDrag.mode === 'dragging';
 
-      try {
-        activeDrag.card.releasePointerCapture(event.pointerId);
-      } catch (err) {
-        // ignore release errors
-      }
-
-      if (activeDrag.moved) {
-        suppressClick = true;
+      if (didDrag) {
         const column = columnAtPoint(event.clientX, event.clientY);
         const newStatus = column ? column.dataset.status : null;
         if (newStatus) {
           moveApplicationStatus(activeDrag.applicationId, newStatus);
         }
+      }
+
+      clearPointerDrag({ suppressClick: didDrag });
+
+      try {
+        activeDrag.card.releasePointerCapture(event.pointerId);
+      } catch (err) {
+        // ignore release errors
       }
     }
 
