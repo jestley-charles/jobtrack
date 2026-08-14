@@ -121,6 +121,23 @@
 
   wirePageLifecycle();
 
+  function ensureAppFooter() {
+    const layout = document.querySelector('.app-layout');
+    if (!layout || layout.querySelector('.app-footer')) {
+      return;
+    }
+
+    const footer = document.createElement('footer');
+    footer.className = 'app-footer';
+    footer.innerHTML =
+      '<p class="app-footer-text">' +
+      'Built by <a href="https://jestleyportfolio.web.app/" target="_blank" rel="noopener noreferrer">Jestley Charles Estipona</a>' +
+      ' · <a href="https://github.com/jestley-charles/jobtrack" target="_blank" rel="noopener noreferrer">GitHub</a>' +
+      ' · <a class="app-footer-kofi" href="https://ko-fi.com/jestleycharles" target="_blank" rel="noopener noreferrer">Support on Ko-fi</a>' +
+      '</p>';
+    layout.appendChild(footer);
+  }
+
   function wireUserMenu(userEmailEl, logoutBtn, menuBtn, menuPanel, initialsEl, email) {
     initialsEl.textContent = getInitials(email);
     userEmailEl.textContent = email;
@@ -193,6 +210,7 @@
       scrollActiveNavIntoView(pageId);
     }
 
+    ensureAppFooter();
     wireNavCleanup();
     wireUserMenu(userEmailEl, logoutBtn, menuBtn, menuPanel, initialsEl, session.user.email);
 

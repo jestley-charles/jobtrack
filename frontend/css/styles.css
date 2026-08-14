@@ -846,6 +846,36 @@ a:hover {
   min-height: 0;
 }
 
+.app-footer {
+  flex-shrink: 0;
+  padding: 0.65rem 1.5rem;
+  text-align: center;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.app-footer-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.app-footer a {
+  color: var(--color-muted);
+  text-decoration: none;
+}
+
+.app-footer a:hover,
+.app-footer a:focus-visible {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.app-footer-kofi {
+  font-weight: 600;
+}
+
 .app-sidebar {
   flex-shrink: 0;
   width: 12.5rem;
