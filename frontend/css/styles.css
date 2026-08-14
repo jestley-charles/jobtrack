@@ -2919,8 +2919,15 @@ body.modal-open {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.25rem;
-    align-items: start;
+    align-items: stretch;
     max-width: 68rem;
+  }
+
+  /* Full-width rows: size to content, no trailing whitespace */
+  .settings-stack > .settings-section:nth-child(1),
+  .settings-stack > .settings-section:nth-child(2),
+  .settings-stack > .settings-section:nth-child(5) {
+    align-self: start;
   }
 
   /* Row 1: Account */
