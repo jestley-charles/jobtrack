@@ -2917,31 +2917,57 @@ body.modal-open {
 
   .settings-stack {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
     align-items: start;
+    max-width: 68rem;
   }
 
-  .settings-action-row {
+  .settings-section:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .settings-section:nth-child(3) .settings-pref-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .settings-section:nth-child(3) .settings-pref {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: calc(var(--radius) - 2px);
   }
 
-  .settings-action-row .btn {
-    width: 100%;
+  .settings-section:nth-child(4) .settings-action-row,
+  .settings-section:nth-child(5) .settings-action-row {
+    flex-direction: row;
+    align-items: center;
   }
 
-  .settings-pref {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .settings-pref .settings-select,
-  .settings-pref .settings-toggle {
-    align-self: flex-start;
+  .settings-section:nth-child(4) .settings-action-row .btn,
+  .settings-section:nth-child(5) .settings-action-row .btn {
+    width: auto;
+    flex-shrink: 0;
   }
 
   .settings-form {
     max-width: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 959px) {
+  .settings-section:nth-child(4),
+  .settings-section:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
+  .settings-section:nth-child(3) .settings-pref-list {
+    grid-template-columns: 1fr;
   }
 }
 
