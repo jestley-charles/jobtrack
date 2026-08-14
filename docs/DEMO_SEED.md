@@ -29,8 +29,64 @@ The seed SQL only inserts into JobTrack tables. The Auth user must exist first.
 
 1. Open the deployed (or local) signup page.
 2. Register with the email/password above.
-3. If email confirmation is required, confirm via Supabase Dashboard
-   (**Users** → select user → confirm) or disable confirmations for the project.
+3. Confirm the email with SQL (Dashboard UI often has no obvious “Confirm” button):
+
+```sql
+update auth.users
+set email_confirmed_at = coalesce(email_confirmed_at, now())
+where lower(email) = lower('demo@jobtrack.com');
+```
+
+---
+
+## Troubleshooting
+
+### “Failed to delete user: Database error deleting user”
+
+JobTrack tables reference `auth.users(id)` **without** `ON DELETE CASCADE`, so Auth
+cannot remove a user who still owns applications/contacts/notes.
+
+**You usually do not need to delete.** If the account already exists, confirm
+email (SQL above), reset the password if needed, then run the seed.
+
+To fully remove the demo user and recreate it:
+
+```sql
+-- 1) Wipe owned rows (interviews/notes cascade from applications)
+do $$
+declare
+  demo_user_id uuid;
+begin
+  select id into demo_user_id
+  from auth.users
+  where lower(email) = lower('demo@jobtrack.com')
+  limit 1;
+
+  if demo_user_id is null then
+    raise notice 'No demo user found — nothing to delete.';
+    return;
+  end if;
+
+  delete from public.contacts where user_id = demo_user_id;
+  delete from public.applications where user_id = demo_user_id;
+end $$;
+
+-- 2) Delete Auth user (run separately after step 1 succeeds)
+delete from auth.users
+where lower(email) = lower('demo@jobtrack.com');
+```
+
+Then recreate via Dashboard (**Add user** + Auto Confirm) or signup, and run the seed.
+
+### Reset password without deleting
+
+```sql
+-- Prefer Dashboard: Authentication → Users → demo user → … → Reset password / Send recovery
+-- Or create a new user with Auto Confirm if you deleted successfully.
+```
+
+If you only need login to work and the password is already `jobtrackdemoaccount`,
+confirming email is enough.
 
 ---
 

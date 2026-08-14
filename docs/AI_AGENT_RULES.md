@@ -268,8 +268,8 @@ already specified above. Newest at the bottom.)*
   Supabase JWT migration.
 - **2026-08-13:** Dashboard recent activity feed is synthesized client-side from
   existing `/api/applications` + `/api/interviews` payloads (no activity/audit
-  API). Events: added, applied, interview, offer, rejection — sorted by date,
-  capped at 15 items.
+  API). Events: added, applied, interview, offer, rejection — sorted by date.
+  Paged client-side (see 2026-08-14 paging decision).
 - **2026-08-13:** Supabase direct DB host (`db.*.supabase.co`) is IPv6-only.
   Render and many dev networks are IPv4-only — use Supavisor session pooler
   (`aws-0-[region].pooler.supabase.com:5432`, user `postgres.[project-ref]`) for
@@ -302,17 +302,21 @@ already specified above. Newest at the bottom.)*
   (`jobtrack-backend/scripts/seed_demo_data.sql`), not a Flyway migration —
   Auth user must exist first; script is idempotent (wipe + reinsert for
   `demo@jobtrack.com`). Docs: `docs/DEMO_SEED.md`.
+- **2026-08-14:** List paging is client-side via `js/pagination.js`
+  (`JobTrackPagination`) — Previous/Next + “N–M of Total”. Used on dashboard
+  upcoming interviews (5/page), recent activity (8/page), and Jobs list view
+  (10/page). Kanban stays unpaged. Full datasets still load through
+  `JobTrackDataCache`; no API page/size params.
 
 ---
 
 ## 6. Current Status
 
-**Phase:** Phase 9 — Demo Data (complete)
-**Last updated by:** Agent session 2026-08-14 (demo seed)
-**Summary:** Phase 9 complete. Seed SQL + setup docs for `demo@jobtrack.com`
-  with 24 applications, 8 interviews, 8 contacts, 5 notes. User must create
-  the Auth account and run the script in Supabase SQL Editor (see
-  `docs/DEMO_SEED.md`).
+**Phase:** Phase 10 — Polish (in progress)
+**Last updated by:** Agent session 2026-08-14 (list paging)
+**Summary:** Client-side paging added for dashboard upcoming interviews,
+  recent activity, and Jobs list (kanban excluded). Shared helper in
+  `frontend/js/pagination.js`.
 
 Next actionable task: **Phase 10 — Responsive layout pass (mobile/tablet)**.
 
@@ -412,6 +416,8 @@ API list calls may still return 500.
       `docs/DEMO_SEED.md`)
 
 ### Phase 10 — Polish
+- [x] Client-side paging — dashboard upcoming interviews + recent activity;
+      Jobs list view (not kanban)
 - [ ] Responsive layout pass (mobile/tablet)
 - [ ] Empty states (no applications yet, etc.)
 - [ ] Loading/error states on all fetch calls
@@ -574,3 +580,7 @@ short — this is a log, not a diary.)*
   `demo@jobtrack.com`: 24 apps across all statuses, 8 interviews with upcoming
   dates, 8 contacts, 5 notes). Auth user creation is a user/dashboard step.
   Phase 9 complete.
+- **2026-08-14 — implement: list paging:** Shared `JobTrackPagination`
+  (`js/pagination.js`). Dashboard upcoming (5/page) + activity (8/page);
+  Jobs table (10/page). Kanban unchanged. Hard caps removed so all items
+  are reachable via pages. Still client-side over full cache (no API paging).

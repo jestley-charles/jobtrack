@@ -9,9 +9,18 @@
 
   const KANBAN_STATUSES = ['Wishlist', 'Applied', 'Interview', 'Offer', 'Rejected'];
   const VIEW_STORAGE_KEY = 'jobtrack.jobsView';
+  const LIST_PAGE_SIZE = 10;
 
   let cachedApplications = [];
   let currentView = 'list';
+
+  const listPager = JobTrackPagination.create({
+    pageSize: LIST_PAGE_SIZE,
+    container: document.getElementById('jobs-list-pager'),
+    onChange: function () {
+      paintListPage();
+    },
+  });
 
   function formatDate(isoDate) {
     if (!isoDate) {
@@ -184,6 +193,11 @@
     });
   }
 
+  function paintListPage() {
+    const state = listPager.paint(cachedApplications);
+    renderList(state.items);
+  }
+
   function createKanbanCard(application) {
     const card = document.createElement('article');
     card.className = 'kanban-card';
@@ -248,7 +262,7 @@
       application.updatedAt = new Date().toISOString();
     }
     JobTrackDataCache.replaceApplication(application);
-    renderList(cachedApplications);
+    paintListPage();
     renderKanban(cachedApplications);
     hideJobsError();
 
@@ -262,12 +276,12 @@
       );
       Object.assign(application, updated);
       JobTrackDataCache.replaceApplication(application);
-      renderList(cachedApplications);
+      paintListPage();
       renderKanban(cachedApplications);
     } catch (err) {
       application.status = previousStatus;
       JobTrackDataCache.replaceApplication(application);
-      renderList(cachedApplications);
+      paintListPage();
       renderKanban(cachedApplications);
       showJobsError(err.message || 'Could not update application status.');
     }
@@ -424,17 +438,18 @@
     const sorted = sortApplications(applications);
     cachedApplications = sorted;
     updateCountLabel(sorted.length);
-    renderList(sorted);
+    paintListPage();
     renderKanban(sorted);
     showActiveView();
   }
 
-  function showApplicationsResult(applications) {
+  function showApplicationsResult(applications, options) {
     const loadingEl = document.getElementById('jobs-loading');
     const emptyEl = document.getElementById('jobs-empty');
     const listEl = document.getElementById('jobs-content');
     const boardEl = document.getElementById('kanban-board');
     const countEl = document.getElementById('jobs-count');
+    const resetPage = Boolean(options && options.resetPage);
 
     loadingEl.hidden = true;
 
@@ -444,9 +459,14 @@
       boardEl.hidden = true;
       countEl.hidden = true;
       cachedApplications = [];
+      listPager.reset();
+      listPager.paint([]);
       return;
     }
 
+    if (resetPage) {
+      listPager.reset();
+    }
     emptyEl.hidden = true;
     renderApplications(applications);
   }
@@ -489,7 +509,7 @@
       const data = force
         ? await JobTrackDataCache.refresh()
         : await JobTrackDataCache.ensureLoaded();
-      showApplicationsResult(data.applications);
+      showApplicationsResult(data.applications, { resetPage: force });
     } catch (err) {
       loadingEl.hidden = true;
       errorEl.textContent = err.message || 'Something went wrong loading applications.';

@@ -1,7 +1,7 @@
 (function () {
   const STATUS_CHART_ORDER = ['Applied', 'Interview', 'Offer', 'Rejected'];
-  const ACTIVITY_LIMIT = 15;
-  const UPCOMING_LIMIT = 8;
+  const UPCOMING_PAGE_SIZE = 5;
+  const ACTIVITY_PAGE_SIZE = 8;
 
   const STATUS_BAR_CLASS = {
     Applied: 'status-bar-fill--applied',
@@ -9,6 +9,25 @@
     Offer: 'status-bar-fill--offer',
     Rejected: 'status-bar-fill--rejected',
   };
+
+  let upcomingAll = [];
+  let activityAll = [];
+
+  const upcomingPager = JobTrackPagination.create({
+    pageSize: UPCOMING_PAGE_SIZE,
+    container: document.getElementById('upcoming-pager'),
+    onChange: function () {
+      paintUpcomingPage();
+    },
+  });
+
+  const activityPager = JobTrackPagination.create({
+    pageSize: ACTIVITY_PAGE_SIZE,
+    container: document.getElementById('activity-pager'),
+    onChange: function () {
+      paintActivityPage();
+    },
+  });
 
   function toSortableTimestamp(value) {
     if (!value) {
@@ -71,7 +90,7 @@
     });
 
     const now = Date.now();
-    const upcoming = interviews
+    return interviews
       .filter(function (interview) {
         if (!interview.interviewDate) {
           return false;
@@ -91,10 +110,7 @@
       })
       .sort(function (a, b) {
         return a.interviewDate.localeCompare(b.interviewDate);
-      })
-      .slice(0, UPCOMING_LIMIT);
-
-    return upcoming;
+      });
   }
 
   function renderUpcomingInterviews(items) {
@@ -172,6 +188,16 @@
     });
   }
 
+  function paintUpcomingPage() {
+    if (!upcomingAll.length) {
+      renderUpcomingInterviews([]);
+      upcomingPager.paint([]);
+      return;
+    }
+    const state = upcomingPager.paint(upcomingAll);
+    renderUpcomingInterviews(state.items);
+  }
+
   function buildActivityEvents(applications, interviews) {
     const appById = {};
     applications.forEach(function (app) {
@@ -241,7 +267,7 @@
       return b.timestamp.localeCompare(a.timestamp);
     });
 
-    return events.slice(0, ACTIVITY_LIMIT);
+    return events;
   }
 
   function renderActivityFeed(events) {
@@ -281,6 +307,16 @@
       item.appendChild(textEl);
       listEl.appendChild(item);
     });
+  }
+
+  function paintActivityPage() {
+    if (!activityAll.length) {
+      renderActivityFeed([]);
+      activityPager.paint([]);
+      return;
+    }
+    const state = activityPager.paint(activityAll);
+    renderActivityFeed(state.items);
   }
 
   function countByStatus(applications) {
@@ -356,8 +392,10 @@
   function applyDashboardData(applications, interviews) {
     renderStatCards(applications, interviews);
     renderStatusChart(countByStatus(applications));
-    renderUpcomingInterviews(buildUpcomingInterviews(applications, interviews));
-    renderActivityFeed(buildActivityEvents(applications, interviews));
+    upcomingAll = buildUpcomingInterviews(applications, interviews);
+    activityAll = buildActivityEvents(applications, interviews);
+    paintUpcomingPage();
+    paintActivityPage();
   }
 
   function paintFromCache() {
@@ -395,6 +433,10 @@
         ? await JobTrackDataCache.refresh()
         : await JobTrackDataCache.ensureLoaded();
 
+      if (force) {
+        upcomingPager.reset();
+        activityPager.reset();
+      }
       applyDashboardData(data.applications, data.interviews);
 
       loadingEl.hidden = true;
