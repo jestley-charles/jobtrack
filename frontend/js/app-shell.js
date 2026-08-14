@@ -96,6 +96,11 @@
     }
 
     wireUserMenu(userEmailEl, logoutBtn, menuBtn, menuPanel, initialsEl, session.user.email);
+
+    if (window.JobTrackInterviewBriefing) {
+      JobTrackInterviewBriefing.maybeShow();
+    }
+
     return session;
   }
 

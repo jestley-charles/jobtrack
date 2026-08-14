@@ -305,25 +305,30 @@ already specified above. Newest at the bottom.)*
   `demo@jobtrack.com`). Docs: `docs/DEMO_SEED.md`.
 - **2026-08-14:** List paging is client-side via `js/pagination.js`
   (`JobTrackPagination`) — Previous/Next + “N–M of Total”. Used on dashboard
-  upcoming interviews (5/page), recent activity (8/page), and Jobs list view
-  (10/page). Kanban stays unpaged. Full datasets still load through
-  `JobTrackDataCache`; no API page/size params.
+  recent activity (8/page) and Jobs list view (10/page). Kanban stays unpaged.
+  Full datasets still load through `JobTrackDataCache`; no API page/size params.
 - **2026-08-14:** Sidebar **Contacts** replaced by **Offers** (`offers.html` +
   `js/offers.js`). Shows applications with `status === Offer`, sorted by salary
   (highest first), with comparison cards (salary emphasis, location, applied
   date, interview count). Decline → `PATCH .../status` to Rejected.
   `contacts.html` redirects to `offers.html`. Contact CRUD API/schema remains;
   no contacts UI for now (overrides original spec nav item).
+- **2026-08-14:** Dashboard “Upcoming interviews” section removed. On login
+  (and signup-with-session), `JobTrackInterviewBriefing.markPending()` sets a
+  `sessionStorage` flag; `app-shell` calls `maybeShow()` which opens a closable
+  assistant-style modal: **Last time | Today (emphasized center) | Next up**.
+  Company links go to application detail; footer has Got it + Open calendar.
+  Module: `js/interview-briefing.js`.
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 10 — Polish (in progress)
-**Last updated by:** Agent session 2026-08-14 (offers tab)
-**Summary:** Contacts nav replaced with Offers comparison page. Offer cards
-  highlight salary for decision-making; Decline marks Rejected. Contacts API
-  unchanged; old `contacts.html` URL redirects.
+**Last updated by:** Agent session 2026-08-14 (interview briefing modal)
+**Summary:** Post-login interview briefing modal (last / today / next) replaces
+  the dashboard upcoming-interviews section. Modal is closable (backdrop, ×,
+  Escape, Got it).
 
 Next actionable task: **Phase 10 — Responsive layout pass (mobile/tablet)**.
 
@@ -408,8 +413,10 @@ API list calls may still return 500.
 
 ### Phase 7 — Interviews
 - [x] Upcoming interviews widget on dashboard
+      *(superseded 2026-08-14: post-login briefing modal instead)*
 - [x] Interview calendar view
 - [x] Add/edit interview tied to an application
+- [x] Post-login interview briefing modal (last / today / next)
 
 ### Phase 8 — Deployment
 - [x] Deploy backend to Render, confirm env vars set
@@ -423,9 +430,9 @@ API list calls may still return 500.
       `docs/DEMO_SEED.md`)
 
 ### Phase 10 — Polish
-- [x] Client-side paging — dashboard upcoming interviews + recent activity;
-      Jobs list view (not kanban)
+- [x] Client-side paging — dashboard recent activity; Jobs list view (not kanban)
 - [x] Replace Contacts nav with Offers comparison page
+- [x] Post-login interview briefing modal; remove dashboard upcoming section
 - [ ] Responsive layout pass (mobile/tablet)
 - [ ] Empty states (no applications yet, etc.)
 - [ ] Loading/error states on all fetch calls
@@ -596,3 +603,7 @@ short — this is a log, not a diary.)*
   (`offers.html` / `offers.js`). Comparison cards for `status=Offer`, sorted by
   salary; Decline → Rejected via status PATCH. `contacts.html` redirects;
   Contact API kept. Overrides original Contacts nav from app spec.
+- **2026-08-14 — implement: interview briefing:** Removed dashboard Upcoming
+  interviews section. Login/signup sets briefing flag; `interview-briefing.js`
+  modal shows Last / Today (center, emphasized) / Next with company links,
+  Got it, Open calendar. Closable via backdrop, ×, Escape.

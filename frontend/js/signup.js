@@ -53,6 +53,9 @@
         const data = await JobTrackAuth.signUp(email, password);
 
         if (data.session) {
+          if (window.JobTrackInterviewBriefing) {
+            JobTrackInterviewBriefing.markPending();
+          }
           window.location.href = 'dashboard.html';
           return;
         }

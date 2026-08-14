@@ -1,6 +1,5 @@
 (function () {
   const STATUS_CHART_ORDER = ['Applied', 'Interview', 'Offer', 'Rejected'];
-  const UPCOMING_PAGE_SIZE = 5;
   const ACTIVITY_PAGE_SIZE = 8;
 
   const STATUS_BAR_CLASS = {
@@ -10,16 +9,7 @@
     Rejected: 'status-bar-fill--rejected',
   };
 
-  let upcomingAll = [];
   let activityAll = [];
-
-  const upcomingPager = JobTrackPagination.create({
-    pageSize: UPCOMING_PAGE_SIZE,
-    container: document.getElementById('upcoming-pager'),
-    onChange: function () {
-      paintUpcomingPage();
-    },
-  });
 
   const activityPager = JobTrackPagination.create({
     pageSize: ACTIVITY_PAGE_SIZE,
@@ -48,154 +38,6 @@
       month: 'short',
       day: 'numeric',
     });
-  }
-
-  function localDateKey(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return year + '-' + month + '-' + day;
-  }
-
-  function formatInterviewTime(timestamp) {
-    const date = new Date(timestamp);
-    if (Number.isNaN(date.getTime())) {
-      return '—';
-    }
-    return date.toLocaleTimeString(undefined, {
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  }
-
-  function dayGroupLabel(dateKey, todayKey, tomorrowKey) {
-    if (dateKey === todayKey) {
-      return 'Today';
-    }
-    if (dateKey === tomorrowKey) {
-      return 'Tomorrow';
-    }
-    const date = new Date(dateKey + 'T12:00:00');
-    return date.toLocaleDateString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
-  }
-
-  function buildUpcomingInterviews(applications, interviews) {
-    const appById = {};
-    applications.forEach(function (app) {
-      appById[app.id] = app;
-    });
-
-    const now = Date.now();
-    return interviews
-      .filter(function (interview) {
-        if (!interview.interviewDate) {
-          return false;
-        }
-        const time = new Date(interview.interviewDate).getTime();
-        return !Number.isNaN(time) && time >= now;
-      })
-      .map(function (interview) {
-        const app = appById[interview.applicationId];
-        return {
-          id: interview.id,
-          applicationId: interview.applicationId,
-          interviewDate: interview.interviewDate,
-          interviewType: interview.interviewType || 'Interview',
-          company: app ? app.company : 'Unknown company',
-        };
-      })
-      .sort(function (a, b) {
-        return a.interviewDate.localeCompare(b.interviewDate);
-      });
-  }
-
-  function renderUpcomingInterviews(items) {
-    const listEl = document.getElementById('upcoming-list');
-    const emptyEl = document.getElementById('upcoming-empty');
-
-    if (!items.length) {
-      listEl.hidden = true;
-      emptyEl.hidden = false;
-      listEl.replaceChildren();
-      return;
-    }
-
-    emptyEl.hidden = true;
-    listEl.hidden = false;
-    listEl.replaceChildren();
-
-    const now = new Date();
-    const todayKey = localDateKey(now);
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowKey = localDateKey(tomorrow);
-
-    let currentGroupKey = null;
-    let groupList = null;
-
-    items.forEach(function (item) {
-      const date = new Date(item.interviewDate);
-      const groupKey = localDateKey(date);
-
-      if (groupKey !== currentGroupKey) {
-        currentGroupKey = groupKey;
-
-        const group = document.createElement('div');
-        group.className = 'upcoming-group';
-
-        const heading = document.createElement('h3');
-        heading.className = 'upcoming-group-label';
-        heading.textContent = dayGroupLabel(groupKey, todayKey, tomorrowKey);
-        group.appendChild(heading);
-
-        groupList = document.createElement('ul');
-        groupList.className = 'upcoming-group-list';
-        group.appendChild(groupList);
-
-        listEl.appendChild(group);
-      }
-
-      const li = document.createElement('li');
-      li.className = 'upcoming-item';
-
-      const timeEl = document.createElement('time');
-      timeEl.className = 'upcoming-time';
-      timeEl.dateTime = item.interviewDate;
-      timeEl.textContent = formatInterviewTime(item.interviewDate);
-
-      const body = document.createElement('div');
-      body.className = 'upcoming-body';
-
-      const companyLink = document.createElement('a');
-      companyLink.className = 'upcoming-company';
-      companyLink.href = 'application.html?id=' + encodeURIComponent(item.applicationId);
-      companyLink.textContent = item.company;
-
-      const typeEl = document.createElement('span');
-      typeEl.className = 'upcoming-type';
-      typeEl.textContent = item.interviewType;
-
-      body.appendChild(companyLink);
-      body.appendChild(typeEl);
-
-      li.appendChild(timeEl);
-      li.appendChild(body);
-      groupList.appendChild(li);
-    });
-  }
-
-  function paintUpcomingPage() {
-    if (!upcomingAll.length) {
-      renderUpcomingInterviews([]);
-      upcomingPager.paint([]);
-      return;
-    }
-    const state = upcomingPager.paint(upcomingAll);
-    renderUpcomingInterviews(state.items);
   }
 
   function buildActivityEvents(applications, interviews) {
@@ -392,9 +234,7 @@
   function applyDashboardData(applications, interviews) {
     renderStatCards(applications, interviews);
     renderStatusChart(countByStatus(applications));
-    upcomingAll = buildUpcomingInterviews(applications, interviews);
     activityAll = buildActivityEvents(applications, interviews);
-    paintUpcomingPage();
     paintActivityPage();
   }
 
@@ -434,7 +274,6 @@
         : await JobTrackDataCache.ensureLoaded();
 
       if (force) {
-        upcomingPager.reset();
         activityPager.reset();
       }
       applyDashboardData(data.applications, data.interviews);

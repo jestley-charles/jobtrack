@@ -31,6 +31,7 @@
   function clearDataCache() {
     try {
       sessionStorage.removeItem('jobtrack.dataCache.v1');
+      sessionStorage.removeItem('jobtrack.interviewBriefing.pending');
     } catch (err) {
       // ignore
     }

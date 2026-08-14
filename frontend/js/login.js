@@ -56,6 +56,9 @@
       setLoading(true);
       try {
         await JobTrackAuth.signIn(email, password);
+        if (window.JobTrackInterviewBriefing) {
+          JobTrackInterviewBriefing.markPending();
+        }
         window.location.replace(redirectTo);
       } catch (err) {
         showError(err.message);
