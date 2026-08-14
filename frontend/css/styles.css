@@ -2111,3 +2111,185 @@ body.modal-open {
   }
 }
 
+/* Offers comparison */
+.offers-count {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.offers-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.offers-empty {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+}
+
+.offers-empty-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.offers-empty-hint {
+  margin: 0 0 1.25rem;
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
+.offers-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.offers-summary-item {
+  padding: 1.1rem 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.offers-summary-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.offers-summary-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #15803d;
+}
+
+.offers-summary-value--text {
+  font-size: 1.1rem;
+  color: var(--color-text);
+}
+
+.offers-compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.offer-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1.35rem 1.25rem 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.offer-card--top {
+  border-color: #86efac;
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.12);
+}
+
+.offer-card-ribbon {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  margin: 0;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #15803d;
+  background: #f0fdf4;
+  border-radius: 4px;
+}
+
+.offer-card-company {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.offer-card--top .offer-card-company {
+  padding-right: 6.5rem;
+}
+
+.offer-card-position {
+  margin: 0;
+  font-size: 0.975rem;
+  color: var(--color-muted);
+}
+
+.offer-card-salary {
+  margin: 0.35rem 0 0.15rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #15803d;
+  line-height: 1.2;
+}
+
+.offer-card-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 0.85rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+}
+
+.offer-card-meta dt {
+  margin: 0;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.offer-card-meta dd {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.offer-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .offers-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-card-company {
+    padding-right: 0;
+  }
+
+  .offer-card-ribbon {
+    position: static;
+    align-self: flex-start;
+    margin-bottom: 0.15rem;
+  }
+
+  .offer-card-salary {
+    font-size: 1.35rem;
+  }
+}
+

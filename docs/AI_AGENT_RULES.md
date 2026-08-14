@@ -254,7 +254,8 @@ already specified above. Newest at the bottom.)*
 - **2026-08-13:** Authenticated app pages share a duplicated HTML shell (header +
   sidebar + main) with common behavior in `js/app-shell.js` (`JobTrackAppShell.init`
   sets active nav, user menu, logout). Nav pages: `dashboard.html`, `jobs.html`,
-  `interviews.html`, `contacts.html`, `settings.html`.
+  `interviews.html`, `offers.html`, `settings.html` (Contacts tab replaced by
+  Offers — see 2026-08-14).
 - **2026-08-13:** Application add/edit uses a modal on `jobs.html` with logic in
   `js/application-form.js` (`JobTrackApplicationForm`). Shared form field styles
   reuse `.form-field` from auth pages; modal is vanilla JS (no dialog element).
@@ -307,16 +308,22 @@ already specified above. Newest at the bottom.)*
   upcoming interviews (5/page), recent activity (8/page), and Jobs list view
   (10/page). Kanban stays unpaged. Full datasets still load through
   `JobTrackDataCache`; no API page/size params.
+- **2026-08-14:** Sidebar **Contacts** replaced by **Offers** (`offers.html` +
+  `js/offers.js`). Shows applications with `status === Offer`, sorted by salary
+  (highest first), with comparison cards (salary emphasis, location, applied
+  date, interview count). Decline → `PATCH .../status` to Rejected.
+  `contacts.html` redirects to `offers.html`. Contact CRUD API/schema remains;
+  no contacts UI for now (overrides original spec nav item).
 
 ---
 
 ## 6. Current Status
 
 **Phase:** Phase 10 — Polish (in progress)
-**Last updated by:** Agent session 2026-08-14 (list paging)
-**Summary:** Client-side paging added for dashboard upcoming interviews,
-  recent activity, and Jobs list (kanban excluded). Shared helper in
-  `frontend/js/pagination.js`.
+**Last updated by:** Agent session 2026-08-14 (offers tab)
+**Summary:** Contacts nav replaced with Offers comparison page. Offer cards
+  highlight salary for decision-making; Decline marks Rejected. Contacts API
+  unchanged; old `contacts.html` URL redirects.
 
 Next actionable task: **Phase 10 — Responsive layout pass (mobile/tablet)**.
 
@@ -418,6 +425,7 @@ API list calls may still return 500.
 ### Phase 10 — Polish
 - [x] Client-side paging — dashboard upcoming interviews + recent activity;
       Jobs list view (not kanban)
+- [x] Replace Contacts nav with Offers comparison page
 - [ ] Responsive layout pass (mobile/tablet)
 - [ ] Empty states (no applications yet, etc.)
 - [ ] Loading/error states on all fetch calls
@@ -584,3 +592,7 @@ short — this is a log, not a diary.)*
   (`js/pagination.js`). Dashboard upcoming (5/page) + activity (8/page);
   Jobs table (10/page). Kanban unchanged. Hard caps removed so all items
   are reachable via pages. Still client-side over full cache (no API paging).
+- **2026-08-14 — implement: Offers tab:** Replaced Contacts nav with Offers
+  (`offers.html` / `offers.js`). Comparison cards for `status=Offer`, sorted by
+  salary; Decline → Rejected via status PATCH. `contacts.html` redirects;
+  Contact API kept. Overrides original Contacts nav from app spec.
