@@ -345,6 +345,12 @@ already specified above. Newest at the bottom.)*
   Jobs table wrapper uses `overflow-x: auto` above card breakpoint (900).
   Offers top ribbon repositions by 768. Calendar day min-height increased on
   phone; HTML5 kanban DnD remains desktop-oriented.
+- **2026-08-14:** Nav guards use local Supabase `getSession()` (not `getUser()`)
+  so tab switches don't hit Auth server. User initials/email cached in
+  `sessionStorage` + Supabase localStorage for instant shell paint.
+  Kanban: pointer-event touch DnD + debounced status PATCH (4s idle, optimistic
+  UI, no read-back). Mobile nav scrolls active tab into view. Demo account
+  password change disabled in Settings.
 
 - **2026-08-14:** Spring Boot 4 Flyway requires `spring-boot-starter-flyway` +
   `flyway-database-postgresql` (not bare `flyway-core`). `/api/health` pings
@@ -357,13 +363,12 @@ already specified above. Newest at the bottom.)*
 
 ## 6. Current Status
 
-**Phase:** Phase 10 — Polish (ship blockers fixed; README remaining)
-**Last updated by:** Agent session 2026-08-14 (fix ship QA blockers)
-**Summary:** Fixed Flyway Boot 4 wiring, login redirect allowlist, auth return
-  `?id=`, create/edit cache upsert, null-token expiry redirect, jobUrl http(s)
-  validation (client+server), JWT 401 message sanitization, DB-aware health,
-  landing/auth copy (Offers not Contacts), settings export refresh. Backend
-  tests pass (`mvnw test` exit 0).
+**Phase:** Phase 10 — Polish (mobile UX + cache fixes done; README remaining)
+**Last updated by:** Agent session 2026-08-14 (fix mobile/cache/kanban QA)
+**Summary:** Fixed auth page mobile touch targets, kanban pointer DnD on touch,
+  debounced kanban status saves (4s), cached user initials (no `?` flash),
+  local-session nav guards (no Auth spam on tab switch), mobile nav scroll-to-active,
+  demo account password lockout. Tab pages skip redundant `ensureLoaded` when cache warm.
 
 Next actionable task: **Phase 10 — README with setup instructions + screenshots**.
   After README: redeploy backend so Flyway runs; smoke-check `/api/health` + demo.
@@ -385,8 +390,6 @@ the task is finished.)*
 *(Bugs discovered but not yet fixed. Format: short description, where it
 lives, repro steps if known, suspected cause if known.)*
 
-- **Kanban HTML5 DnD on touch** — unreliable on mobile/tablets; change status
-  via Edit application instead. No Pointer Events rewrite planned.
 - **Notes table orphaned** — schema + seed only; no API/UI (intentional).
 - **No root README** — Phase 10 backlog item still open.
 
@@ -695,3 +698,8 @@ short — this is a log, not a diary.)*
   → session expiry; jobUrl http(s) client+DTO; JWT 401 generic message; health
   JDBC ping via `ObjectProvider`; landing/auth copy → Offers; settings export
   uses `refresh()`. Backend tests pass.
+- **2026-08-14 — fix: mobile UX + cache spam:** Auth pages — touch targets,
+  `100dvh`, 16px inputs (no iOS zoom freeze). `requireAuth`/`redirectIfAuthenticated`
+  use local `getSession()` not network `getUser()`. User display cache for initials.
+  Kanban pointer DnD + 4s debounced PATCH (optimistic, no rollback). Nav scrolls
+  active tab on mobile. Demo password disabled. List pages skip fetch when cache warm.

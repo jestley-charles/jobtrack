@@ -3,6 +3,8 @@
  */
 (function () {
   var handlingSessionExpired = false;
+  var USER_DISPLAY_KEY = 'jobtrack.userDisplay.v1';
+  var DEMO_EMAIL = 'demo@jobtrack.com';
 
   function getClient() {
     return window.JobTrackSupabase.getClient();
@@ -46,6 +48,73 @@
     return error.message;
   }
 
+  function isDemoAccount(email) {
+    return Boolean(email && email.toLowerCase() === DEMO_EMAIL);
+  }
+
+  function cacheUserDisplay(session) {
+    if (!session || !session.user || !session.user.email) {
+      return;
+    }
+    try {
+      sessionStorage.setItem(
+        USER_DISPLAY_KEY,
+        JSON.stringify({
+          email: session.user.email,
+          userId: session.user.id || null,
+        })
+      );
+    } catch (err) {
+      // ignore storage errors
+    }
+  }
+
+  function readCachedUserDisplay() {
+    try {
+      var raw = sessionStorage.getItem(USER_DISPLAY_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.email) {
+          return parsed;
+        }
+      }
+    } catch (err) {
+      // fall through to Supabase local storage
+    }
+
+    try {
+      var key;
+      for (key in localStorage) {
+        if (!Object.prototype.hasOwnProperty.call(localStorage, key)) {
+          continue;
+        }
+        if (!key.startsWith('sb-') || !key.endsWith('-auth-token')) {
+          continue;
+        }
+        var stored = JSON.parse(localStorage.getItem(key));
+        var user =
+          (stored && stored.user) ||
+          (stored && stored.currentSession && stored.currentSession.user) ||
+          null;
+        if (user && user.email) {
+          return { email: user.email, userId: user.id || null };
+        }
+      }
+    } catch (err) {
+      return null;
+    }
+
+    return null;
+  }
+
+  function clearUserDisplay() {
+    try {
+      sessionStorage.removeItem(USER_DISPLAY_KEY);
+    } catch (err) {
+      // ignore
+    }
+  }
+
   function clearDataCache() {
     try {
       sessionStorage.removeItem('jobtrack.dataCache.v1');
@@ -56,6 +125,19 @@
     if (window.JobTrackDataCache && typeof window.JobTrackDataCache.invalidate === 'function') {
       window.JobTrackDataCache.invalidate();
     }
+  }
+
+  function isSessionUsable(session) {
+    if (!session || !session.access_token || !session.user) {
+      return false;
+    }
+    if (session.expires_at) {
+      var expiresMs = session.expires_at * 1000;
+      if (Date.now() >= expiresMs - 30000) {
+        return false;
+      }
+    }
+    return true;
   }
 
   async function clearLocalSession() {
@@ -69,6 +151,7 @@
         localStorage.removeItem(key);
       }
     });
+    clearUserDisplay();
     clearDataCache();
   }
 
@@ -85,6 +168,14 @@
     return session ? session.access_token : null;
   }
 
+  /**
+   * Local session check — no network. Used for nav guards and instant UI paint.
+   */
+  async function hasLocalSession() {
+    const session = await getSession();
+    return isSessionUsable(session);
+  }
+
   async function hasValidUser() {
     const { data, error } = await getClient().auth.getUser();
     return Boolean(data.user) && !error;
@@ -95,6 +186,9 @@
     if (error) {
       throw new Error(formatAuthError(error));
     }
+    if (data.session) {
+      cacheUserDisplay(data.session);
+    }
     return data;
   }
 
@@ -103,11 +197,15 @@
     if (error) {
       throw new Error(formatAuthError(error));
     }
+    if (data.session) {
+      cacheUserDisplay(data.session);
+    }
     return data;
   }
 
   async function signOut() {
     const { error } = await getClient().auth.signOut();
+    clearUserDisplay();
     clearDataCache();
     if (error) {
       throw new Error(formatAuthError(error));
@@ -132,18 +230,19 @@
 
   /**
    * Redirect to login if there is no active session.
-   * Uses getUser() so stale cached sessions are not treated as logged in.
+   * Uses cached Supabase session only — no network round-trip on tab switches.
    * @param {string} [redirectTo] — page to return to after login
    */
   async function requireAuth(redirectTo) {
-    const valid = await hasValidUser();
-    if (!valid) {
+    const session = await getSession();
+    if (!isSessionUsable(session)) {
       await clearLocalSession();
       const next = redirectTo || getReturnPath() || 'dashboard.html';
       window.location.replace('login.html?redirect=' + encodeURIComponent(next));
       return null;
     }
-    return getSession();
+    cacheUserDisplay(session);
+    return session;
   }
 
   /**
@@ -158,8 +257,8 @@
       return false;
     }
 
-    const valid = await hasValidUser();
-    if (valid) {
+    const session = await getSession();
+    if (isSessionUsable(session)) {
       window.location.replace(destination || 'dashboard.html');
       return true;
     }
@@ -190,6 +289,7 @@
     getSession,
     getUser,
     getAccessToken,
+    hasLocalSession,
     hasValidUser,
     updatePassword,
     clearLocalSession,
@@ -199,5 +299,8 @@
     handleSessionExpired,
     getReturnPath,
     formatAuthError,
+    isDemoAccount,
+    readCachedUserDisplay,
+    cacheUserDisplay,
   };
 })();

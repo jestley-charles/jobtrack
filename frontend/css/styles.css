@@ -349,23 +349,39 @@ a:hover {
   .auth-card {
     max-width: none;
     min-height: 100vh;
+    min-height: 100dvh;
     border-left: none;
     padding: 2rem 1.5rem;
+    justify-content: flex-start;
+    padding-top: max(2rem, env(safe-area-inset-top));
+    padding-bottom: max(2rem, env(safe-area-inset-bottom));
   }
 
   .auth-brand--mobile {
     display: inline-block;
+  }
+
+  .auth-form input {
+    min-height: 2.75rem;
+    font-size: 16px;
+  }
+
+  .auth-form .btn {
+    min-height: 2.75rem;
   }
 }
 
 /* Auth pages */
 .auth-page {
   min-height: 100vh;
+  min-height: 100dvh;
   background: linear-gradient(180deg, #eef2ff 0%, var(--color-bg) 42%);
+  touch-action: manipulation;
 }
 
 .auth-layout {
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   grid-template-columns: 1fr 1fr;
   max-width: 56rem;
@@ -471,6 +487,7 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  touch-action: manipulation;
 }
 
 .form-field {
@@ -849,6 +866,8 @@ a:hover {
     border-bottom: 1px solid var(--color-border);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: auto;
+    overscroll-behavior-x: contain;
   }
 
   .app-nav {
@@ -1936,6 +1955,7 @@ body.modal-open {
   align-items: start;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
   padding-bottom: 0.25rem;
   max-width: 100%;
 }
@@ -1997,15 +2017,13 @@ body.modal-open {
   border-radius: calc(var(--radius) - 2px);
   box-shadow: 0 2px 8px rgba(26, 29, 38, 0.06);
   cursor: grab;
-}
-
-.kanban-card:active {
-  cursor: grabbing;
+  touch-action: pan-x;
 }
 
 .kanban-card--dragging {
   opacity: 0.45;
   cursor: grabbing;
+  touch-action: none;
 }
 
 .kanban-column--drag-over {
@@ -2694,6 +2712,16 @@ body.modal-open {
   margin: 0;
   font-size: 0.9rem;
   color: var(--color-muted);
+}
+
+.settings-demo-notice {
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
 }
 
 .settings-form {

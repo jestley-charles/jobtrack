@@ -313,6 +313,8 @@
     document.getElementById('offers-refresh-btn').addEventListener('click', function () {
       loadOffers({ force: true });
     });
-    loadOffers();
+    if (!JobTrackDataCache.hasData()) {
+      loadOffers();
+    }
   });
 })();

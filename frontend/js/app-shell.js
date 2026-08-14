@@ -14,6 +14,18 @@
     return local.slice(0, 2).toUpperCase() || '?';
   }
 
+  function paintCachedUser(initialsEl, userEmailEl) {
+    if (!initialsEl || !userEmailEl || !window.JobTrackAuth) {
+      return;
+    }
+    const cached = JobTrackAuth.readCachedUserDisplay();
+    if (!cached || !cached.email) {
+      return;
+    }
+    initialsEl.textContent = getInitials(cached.email);
+    userEmailEl.textContent = cached.email;
+  }
+
   function setActiveNav(pageId) {
     document.querySelectorAll('.app-nav-link').forEach(function (link) {
       const isActive = link.dataset.nav === pageId;
@@ -23,6 +35,23 @@
       } else {
         link.removeAttribute('aria-current');
       }
+    });
+  }
+
+  function scrollActiveNavIntoView(pageId) {
+    if (!pageId) {
+      return;
+    }
+    const sidebar = document.querySelector('.app-sidebar');
+    const activeLink = document.querySelector('.app-nav-link[data-nav="' + pageId + '"]');
+    if (!sidebar || !activeLink) {
+      return;
+    }
+    requestAnimationFrame(function () {
+      activeLink.scrollIntoView({
+        block: 'nearest',
+        inline: 'center',
+      });
     });
   }
 
@@ -86,6 +115,8 @@
     const menuPanel = document.getElementById('user-menu');
     const initialsEl = document.getElementById('user-initials');
 
+    paintCachedUser(initialsEl, userEmailEl);
+
     const session = await JobTrackAuth.requireAuth(JobTrackAuth.getReturnPath());
     if (!session) {
       return null;
@@ -93,6 +124,7 @@
 
     if (pageId) {
       setActiveNav(pageId);
+      scrollActiveNavIntoView(pageId);
     }
 
     wireUserMenu(userEmailEl, logoutBtn, menuBtn, menuPanel, initialsEl, session.user.email);
@@ -106,5 +138,6 @@
 
   window.JobTrackAppShell = {
     init,
+    getInitials,
   };
 })();

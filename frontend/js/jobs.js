@@ -10,9 +10,12 @@
   const KANBAN_STATUSES = ['Wishlist', 'Applied', 'Interview', 'Offer', 'Rejected'];
   const VIEW_STORAGE_KEY = 'jobtrack.jobsView';
   const LIST_PAGE_SIZE = 10;
+  const STATUS_SAVE_DELAY_MS = 4000;
+  const POINTER_DRAG_THRESHOLD_PX = 8;
 
   let cachedApplications = [];
   let currentView = 'list';
+  const pendingStatusSaves = {};
 
   const listPager = JobTrackPagination.create({
     pageSize: LIST_PAGE_SIZE,
@@ -202,7 +205,7 @@
     const card = document.createElement('article');
     card.className = 'kanban-card';
     card.dataset.applicationId = application.id;
-    card.draggable = true;
+    card.draggable = window.matchMedia('(pointer: fine)').matches;
 
     const link = document.createElement('a');
     link.className = 'kanban-card-link';
@@ -243,20 +246,16 @@
     }) || null;
   }
 
-  /**
-   * Optimistically move a card, then PATCH status. Reverts UI on API failure.
-   */
-  async function moveApplicationStatus(applicationId, newStatus) {
+  function applyStatusChangeLocally(applicationId, newStatus) {
     if (KANBAN_STATUSES.indexOf(newStatus) === -1) {
-      return;
+      return false;
     }
 
     const application = findApplication(applicationId);
     if (!application || application.status === newStatus) {
-      return;
+      return false;
     }
 
-    const previousStatus = application.status;
     application.status = newStatus;
     if (application.updatedAt != null) {
       application.updatedAt = new Date().toISOString();
@@ -265,26 +264,58 @@
     paintListPage();
     renderKanban(cachedApplications);
     hideJobsError();
+    return true;
+  }
 
+  async function persistStatusChange(applicationId, status) {
     try {
-      const updated = await JobTrackApi.fetchJson(
+      await JobTrackApi.fetchJson(
         '/api/applications/' + encodeURIComponent(applicationId) + '/status',
         {
           method: 'PATCH',
-          body: JSON.stringify({ status: newStatus }),
+          body: JSON.stringify({ status: status }),
         }
       );
-      Object.assign(application, updated);
-      JobTrackDataCache.replaceApplication(application);
-      paintListPage();
-      renderKanban(cachedApplications);
     } catch (err) {
-      application.status = previousStatus;
-      JobTrackDataCache.replaceApplication(application);
-      paintListPage();
-      renderKanban(cachedApplications);
-      showJobsError(err.message || 'Could not update application status.');
+      showJobsError(err.message || 'Could not save application status.');
     }
+  }
+
+  function scheduleStatusSave(applicationId, newStatus) {
+    const pending = pendingStatusSaves[applicationId];
+    if (pending && pending.timer) {
+      window.clearTimeout(pending.timer);
+    }
+
+    pendingStatusSaves[applicationId] = {
+      status: newStatus,
+      timer: window.setTimeout(function () {
+        delete pendingStatusSaves[applicationId];
+        persistStatusChange(applicationId, newStatus);
+      }, STATUS_SAVE_DELAY_MS),
+    };
+  }
+
+  /**
+   * Update UI immediately; PATCH status after the user stops moving cards.
+   */
+  function moveApplicationStatus(applicationId, newStatus) {
+    if (!applyStatusChangeLocally(applicationId, newStatus)) {
+      return;
+    }
+    scheduleStatusSave(applicationId, newStatus);
+  }
+
+  function flushPendingStatusSaves() {
+    Object.keys(pendingStatusSaves).forEach(function (applicationId) {
+      const pending = pendingStatusSaves[applicationId];
+      if (!pending) {
+        return;
+      }
+      window.clearTimeout(pending.timer);
+      persistStatusChange(applicationId, pending.status);
+      delete pendingStatusSaves[applicationId];
+    });
   }
 
   function hideJobsError() {
@@ -299,13 +330,39 @@
     errorEl.hidden = false;
   }
 
+  function columnAtPoint(clientX, clientY) {
+    const target = document.elementFromPoint(clientX, clientY);
+    if (!target) {
+      return null;
+    }
+    const column = target.closest('.kanban-column');
+    return column && document.getElementById('kanban-board').contains(column) ? column : null;
+  }
+
+  function highlightDropColumn(column) {
+    if (!column) {
+      clearColumnDragOver();
+      return;
+    }
+    if (!column.classList.contains('kanban-column--drag-over')) {
+      clearColumnDragOver();
+      column.classList.add('kanban-column--drag-over');
+    }
+  }
+
   function wireKanbanDragAndDrop() {
     const board = document.getElementById('kanban-board');
     let draggedId = null;
     let dragDidMove = false;
     let suppressClick = false;
+    let pointerDrag = null;
 
     board.addEventListener('dragstart', function (event) {
+      if (pointerDrag) {
+        event.preventDefault();
+        return;
+      }
+
       const card = event.target.closest('.kanban-card');
       if (!card || !board.contains(card)) {
         return;
@@ -345,11 +402,7 @@
 
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
-
-      if (!column.classList.contains('kanban-column--drag-over')) {
-        clearColumnDragOver();
-        column.classList.add('kanban-column--drag-over');
-      }
+      highlightDropColumn(column);
     });
 
     board.addEventListener('dragleave', function (event) {
@@ -384,6 +437,81 @@
       moveApplicationStatus(applicationId, newStatus);
     });
 
+    board.addEventListener('pointerdown', function (event) {
+      if (event.button !== 0 || pointerDrag) {
+        return;
+      }
+
+      const card = event.target.closest('.kanban-card');
+      if (!card || !board.contains(card)) {
+        return;
+      }
+
+      pointerDrag = {
+        card: card,
+        applicationId: card.dataset.applicationId,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false,
+      };
+    });
+
+    board.addEventListener('pointermove', function (event) {
+      if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
+        return;
+      }
+
+      const deltaX = event.clientX - pointerDrag.startX;
+      const deltaY = event.clientY - pointerDrag.startY;
+      if (!pointerDrag.moved) {
+        if (Math.hypot(deltaX, deltaY) < POINTER_DRAG_THRESHOLD_PX) {
+          return;
+        }
+        pointerDrag.moved = true;
+        pointerDrag.card.classList.add('kanban-card--dragging');
+        pointerDrag.card.draggable = false;
+        try {
+          pointerDrag.card.setPointerCapture(event.pointerId);
+        } catch (err) {
+          // ignore capture errors
+        }
+      }
+
+      event.preventDefault();
+      highlightDropColumn(columnAtPoint(event.clientX, event.clientY));
+    });
+
+    function finishPointerDrag(event) {
+      if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) {
+        return;
+      }
+
+      const activeDrag = pointerDrag;
+      pointerDrag = null;
+      activeDrag.card.classList.remove('kanban-card--dragging');
+      activeDrag.card.draggable = true;
+      clearColumnDragOver();
+
+      try {
+        activeDrag.card.releasePointerCapture(event.pointerId);
+      } catch (err) {
+        // ignore release errors
+      }
+
+      if (activeDrag.moved) {
+        suppressClick = true;
+        const column = columnAtPoint(event.clientX, event.clientY);
+        const newStatus = column ? column.dataset.status : null;
+        if (newStatus) {
+          moveApplicationStatus(activeDrag.applicationId, newStatus);
+        }
+      }
+    }
+
+    board.addEventListener('pointerup', finishPointerDrag);
+    board.addEventListener('pointercancel', finishPointerDrag);
+
     board.addEventListener(
       'click',
       function (event) {
@@ -398,6 +526,8 @@
       },
       true
     );
+
+    window.addEventListener('pagehide', flushPendingStatusSaves);
   }
 
   function renderKanban(applications) {
@@ -570,6 +700,9 @@
     wireAddButtons();
     wireViewToggle();
     wireKanbanDragAndDrop();
+    if (JobTrackDataCache.hasData()) {
+      return;
+    }
     loadApplications();
   });
 })();

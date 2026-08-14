@@ -308,6 +308,8 @@
     document.getElementById('dashboard-refresh-btn').addEventListener('click', function () {
       loadDashboardStats({ force: true });
     });
-    loadDashboardStats();
+    if (!JobTrackDataCache.hasData()) {
+      loadDashboardStats();
+    }
   });
 })();

@@ -64,6 +64,29 @@
     }
   }
 
+  function configureDemoPasswordLock(email) {
+    const form = document.getElementById('settings-password-form');
+    const submitBtn = document.getElementById('settings-password-submit');
+    const noticeEl = document.getElementById('settings-password-demo-notice');
+    const isDemo = JobTrackAuth.isDemoAccount(email);
+
+    if (!form) {
+      return;
+    }
+
+    form.querySelectorAll('input').forEach(function (input) {
+      input.disabled = isDemo;
+    });
+
+    if (submitBtn) {
+      submitBtn.disabled = isDemo;
+    }
+
+    if (noticeEl) {
+      noticeEl.hidden = !isDemo;
+    }
+  }
+
   function bindPasswordForm() {
     const form = document.getElementById('settings-password-form');
     const submitBtn = document.getElementById('settings-password-submit');
@@ -77,6 +100,13 @@
       event.preventDefault();
       showMessage(errorEl, '');
       showMessage(successEl, '');
+
+      const emailEl = document.getElementById('settings-email');
+      const email = emailEl ? emailEl.textContent : '';
+      if (JobTrackAuth.isDemoAccount(email)) {
+        showMessage(errorEl, 'Password changes are disabled for the demo account.');
+        return;
+      }
 
       const password = form.password.value;
       const confirm = form.passwordConfirm.value;
@@ -99,8 +129,12 @@
       } catch (err) {
         showMessage(errorEl, err.message || 'Could not update password.');
       } finally {
-        submitBtn.disabled = false;
         submitBtn.textContent = 'Update password';
+        configureDemoPasswordLock(
+          document.getElementById('settings-email')
+            ? document.getElementById('settings-email').textContent
+            : ''
+        );
       }
     });
   }
@@ -219,12 +253,9 @@
       return;
     }
 
-    try {
-      const user = await JobTrackAuth.getUser();
-      fillAccount(user || (session && session.user));
-    } catch (err) {
-      fillAccount(session && session.user);
-    }
+    const user = session.user || null;
+    fillAccount(user);
+    configureDemoPasswordLock(user && user.email);
 
     bindPasswordForm();
     bindPreferences();

@@ -475,6 +475,8 @@
     document.getElementById('interviews-refresh-btn').addEventListener('click', function () {
       loadInterviews({ preserveSelection: true, force: true });
     });
-    loadInterviews();
+    if (!JobTrackDataCache.hasData()) {
+      loadInterviews();
+    }
   });
 })();

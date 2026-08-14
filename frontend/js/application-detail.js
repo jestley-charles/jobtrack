@@ -524,6 +524,8 @@
     });
 
     wireActions();
-    loadApplication(applicationId);
+    if (!JobTrackDataCache.hasData() || document.getElementById('application-content').hidden) {
+      loadApplication(applicationId);
+    }
   });
 })();

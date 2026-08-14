@@ -275,6 +275,8 @@
     document.getElementById('rejected-refresh-btn').addEventListener('click', function () {
       loadRejected({ force: true });
     });
-    loadRejected();
+    if (!JobTrackDataCache.hasData()) {
+      loadRejected();
+    }
   });
 })();
